@@ -144,6 +144,8 @@
       <div class="btn-group">  
         <button onclick="window.open('https://www.disney-magic-kingdoms.com/news/patchnote_upd101')">Patch Note</button>  
         <button onclick="window.open('https://dmk.fandom.com/wiki/Category:Update_101')">Wiki</button>  
+        <button onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">Discord</button>  
+        <button onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">Facebook</button>  
         <button onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io/edit/main/index.html')">Github</button>  
       </div>  
     </h1>  
@@ -281,11 +283,12 @@ Highcharts.ganttChart('container', {
     style: { fontFamily: 'inherit' }  
   },  
   tooltip: {  
+  enabled: false,
     pointFormatter: function () {  
       const p = this;  
       const s = new Date(p.start), e = new Date(p.end);  
       const fmt = d => d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');  
-      return ''; // `<b>${p.name}</b><br/>开始：${fmt(s)}<br/>结束：${fmt(new Date(p.end - 1))}`;  
+      return '';//`<b>${p.name}</b><br/>开始：${fmt(s)}<br/>结束：${fmt(new Date(p.end - 1))}`;  
     },  
     headerFormat: ''  
   },  
@@ -302,14 +305,14 @@ Highcharts.ganttChart('container', {
       width: 2,  
       dashStyle: 'ShortDash',  
       zIndex: 2,  
-      label: { rotation: 0, x: 15, y: -4, text: 'Today', align: 'right', style: { color: '#FF3B30' } }  
+      label: { rotation: 0, x: 9, y: -4, text: '️🔻', align: 'right', style: { color: '#FF3B30' } }  
     }, {  
       value: toUtcMs('2025-12-25'),  
       color: '#30C2FF',  
       width: 2,  
       dashStyle: 'ShortDash',  
       zIndex: 1,  
-      label: { rotation: 0, x: 10, y: -4, text: '🎁', align: 'right' }  
+      label: { rotation: 0, x: 9, y: -4, text: '🎁', align: 'right' }  
     }]  
   }],  
   yAxis: {  
@@ -345,4 +348,3 @@ Highcharts.ganttChart('container', {
 </script>  
 </body>  
 </html>  
-
