@@ -3,6 +3,7 @@
 <head>  
 <meta charset="utf-8" />  
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />  
+<link rel="icon" href="https://static.wikia.nocookie.net/disneymagicalkingdoms/images/e/ea/Update-16-app_icon.png" type="image/png">
 <title>Disney Magic Kingdoms Update 101</title>  
 <!-- Highcharts Gantt CDN -->  
 <script src="https://code.highcharts.com/gantt/highcharts-gantt.js"></script>  
@@ -140,10 +141,10 @@
 <body>  
   <div class="main-container">  
     <h1>  
-      <span class="outline-effect">DMK Update 101</span>  
+      <span id="headerTitle" class="outline-effect">DMK Update 101</span>  
       <div class="btn-group">  
-        <button onclick="window.open('https://www.disney-magic-kingdoms.com/news/patchnote_upd101')">Patch Note</button>  
-        <button onclick="window.open('https://dmk.fandom.com/wiki/Category:Update_101')">Wiki</button>  
+        <button id="btnPatch">Patch Note</button>  
+        <button id="btnWiki">Wiki</button>  
         <button onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">Facebook</button>  
         <button onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">Discord</button>  
         <button onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io/edit/main/index.html')">Github</button>  
@@ -154,7 +155,7 @@
       
     <img id="topImage" class="top-image"  
          src="https://dmk.assets.gameloft.com/assets/UPD_101_Pack_Art_Avatar_full_6416x2484_Full_1_ac668e4c4c.jpg"  
-         alt="Disney Magic Kingdoms Update 101 Artwork"   
+         alt="Disney Magic Kingdoms Artwork"   
          onerror="this.style.display='none'" />  
       
     <!-- 增加了一层 wrapper 用于滚动 -->  
@@ -165,7 +166,44 @@
   
 <script>  
 // ==========================================  
-// 1. 图片加载超时控制逻辑 (新增部分)  
+// 0. 全局配置 (修改这里即可更新版本)  
+// ==========================================  
+const CONFIG = {  
+  version: '100', // 🛠️ 只需要改这个数字，所有链接和标题都会自动更新  
+};  
+
+// ==========================================  
+// 1. 初始化页面内容 (标题、链接)  
+// ==========================================  
+(function initPageContent() {  
+  const v = CONFIG.version;  
+    
+  // 1. 更新网页 <title>  
+  document.title = `Disney Magic Kingdoms Update ${v}`;  
+    
+  // 2. 更新页面大标题文本  
+  const headerTitle = document.getElementById('headerTitle');  
+  if (headerTitle) headerTitle.innerText = `DMK Update ${v}`;  
+    
+  // 3. 绑定 Patch Note 按钮链接  
+  const btnPatch = document.getElementById('btnPatch');  
+  if (btnPatch) {  
+    btnPatch.onclick = function() {  
+      window.open(`https://www.disney-magic-kingdoms.com/news/patchnote_upd${v}`);  
+    };  
+  }  
+    
+  // 4. 绑定 Wiki 按钮链接  
+  const btnWiki = document.getElementById('btnWiki');  
+  if (btnWiki) {  
+    btnWiki.onclick = function() {  
+      window.open(`https://dmk.fandom.com/wiki/Category:Update_${v}`);  
+    };  
+  }  
+})();  
+
+// ==========================================  
+// 2. 图片加载超时控制逻辑 (新增部分)  
 // ==========================================  
 (function handleImageLoading() {  
   const img = document.getElementById('topImage');  
@@ -195,7 +233,9 @@
   };  
 })();  
 
-// -------------------- 数据与逻辑保持不变 --------------------  
+// ==========================================  
+// 3. Highcharts 甘特图逻辑  
+// ==========================================  
 const schedules = [  
   {  
     resource: '',  
@@ -336,14 +376,14 @@ Highcharts.ganttChart('container', {
       color: '#FF3B30',  
       width: 2,  
       dashStyle: 'ShortDash',  
-      zIndex: 2,  
+      zIndex: 3,  
       label: { rotation: 0, x: 9, y: -4, text: '️🔻', align: 'right', style: { color: '#FF3B30' } }  
     }, {  
       value: toUtcMs('2025-12-25'),  
       color: '#30C2FF',  
       width: 2,  
       dashStyle: 'ShortDash',  
-      zIndex: 1,  
+      zIndex: 2,  
       label: { rotation: 0, x: 9, y: -4, text: '🎁', align: 'right' }  
     }]  
   }],  
