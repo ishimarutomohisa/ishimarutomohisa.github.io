@@ -285,7 +285,7 @@ Highcharts.ganttChart('container', {
       const p = this;  
       const s = new Date(p.start), e = new Date(p.end);  
       const fmt = d => d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');  
-      return `<b>${p.name}</b><br/>开始：${fmt(s)}<br/>结束：${fmt(new Date(p.end - 1))}`;  
+      return ''; // `<b>${p.name}</b><br/>开始：${fmt(s)}<br/>结束：${fmt(new Date(p.end - 1))}`;  
     },  
     headerFormat: ''  
   },  
@@ -345,3 +345,4 @@ Highcharts.ganttChart('container', {
 </script>  
 </body>  
 </html>  
+
