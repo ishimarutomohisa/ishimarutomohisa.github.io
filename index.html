@@ -144,8 +144,8 @@
       <div class="btn-group">  
         <button onclick="window.open('https://www.disney-magic-kingdoms.com/news/patchnote_upd101')">Patch Note</button>  
         <button onclick="window.open('https://dmk.fandom.com/wiki/Category:Update_101')">Wiki</button>  
-        <button onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">Discord</button>  
         <button onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">Facebook</button>  
+        <button onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">Discord</button>  
         <button onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io/edit/main/index.html')">Github</button>  
       </div>  
     </h1>  
@@ -154,7 +154,8 @@
       
     <img id="topImage" class="top-image"  
          src="https://dmk.assets.gameloft.com/assets/UPD_101_Pack_Art_Avatar_full_6416x2484_Full_1_ac668e4c4c.jpg"  
-         alt="Disney Magic Kingdoms Update 101 Artwork" />  
+         alt="Disney Magic Kingdoms Update 101 Artwork"   
+         onerror="this.style.display='none'" />  
       
     <!-- 增加了一层 wrapper 用于滚动 -->  
     <div class="chart-wrapper">  
@@ -163,6 +164,37 @@
   </div>  
   
 <script>  
+// ==========================================  
+// 1. 图片加载超时控制逻辑 (新增部分)  
+// ==========================================  
+(function handleImageLoading() {  
+  const img = document.getElementById('topImage');  
+  const timeoutDuration = 5000; // 设置超时时间：5000毫秒 (5秒)  
+  
+  // 如果脚本执行时图片已经加载完了（比如来自缓存），直接返回  
+  if (img.complete) return;  
+  
+  // 设置定时器  
+  const timer = setTimeout(() => {  
+    // 再次检查，如果还没完成  
+    if (!img.complete) {  
+      console.warn('Image loading timed out (' + timeoutDuration + 'ms). Hiding image.');  
+      img.src = ''; // 置空 src 停止网络请求  
+      img.style.display = 'none'; // 隐藏元素  
+      img.style.marginBottom = '0'; // 去除下边距  
+    }  
+  }, timeoutDuration);  
+  
+  // 如果加载成功，清除定时器  
+  img.onload = () => clearTimeout(timer);  
+    
+  // 如果加载本身就报错（404等），清除定时器并隐藏  
+  img.onerror = () => {  
+    clearTimeout(timer);  
+    img.style.display = 'none';  
+  };  
+})();  
+
 // -------------------- 数据与逻辑保持不变 --------------------  
 const schedules = [  
   {  
