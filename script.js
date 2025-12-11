@@ -4197,26 +4197,39 @@ let taskDatabase = [];
 // 初始化：解析原始数据字符串为JS数组  
 function initDatabase() {  
   try {  
-    // 1. 移除注释和空行  
-    let cleanData = rawDataSource  
-      .replace(/--$\[\=*\[.*?$\=*\]\]/gs, '')  // 移除多行注释  
-      .replace(/--.*$/gm, '')                     // 移除单行注释  
-      .trim();  
+    // 1. 移除所有多行注释（假设没有嵌套）  
+    let cleanData = rawDataSource.replace(/--$=*\[[\s\S]*?$=*\]/g, '');  
       
-    // 2. 移除 return { 和最后的 }  
-    cleanData = cleanData  
-      .replace(/^return\s*\{/, '')  // 移除开头的 return {  
-      .replace(/\}\s*$/, '')        // 移除结尾的 }  
-      .trim();  
-      
-    // 3. 处理特殊格式：移除类似 X="Comfy$" 这样的键值对  
-    cleanData = cleanData.replace(/,?\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*"[^"]*"/g, '');  
-      
-    // 4. 分割成行，每行一个任务  
+    // 2. 按行分割  
     const lines = cleanData.split('\n');  
       
-    // 5. 解析每一行  
-    taskDatabase = lines.map(line => {  
+    // 3. 处理每一行：移除行内注释，trim  
+    const processedLines = lines.map(line => {  
+      // 移除行内注释（从--开始到行尾）  
+      const commentIndex = line.indexOf('--');  
+      if (commentIndex !== -1) {  
+        line = line.substring(0, commentIndex);  
+      }  
+      return line.trim();  
+    }).filter(line => line !== ''); // 过滤空行  
+      
+    // 4. 重新组合成字符串，以便后续解析  
+    cleanData = processedLines.join('\n');  
+      
+    // 5. 移除 return { 和最后的 }  
+    cleanData = cleanData  
+      .replace(/^return\s*\{/, '')  
+      .replace(/\}\s*$/, '')  
+      .trim();  
+      
+    // 6. 处理特殊格式：移除类似 X="Comfy$" 这样的键值对  
+    cleanData = cleanData.replace(/,?\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*"[^"]*"/g, '');  
+      
+    // 7. 重新分割成行，每行一个任务  
+    const taskLines = cleanData.split('\n');  
+      
+    // 8. 解析每一行  
+    taskDatabase = taskLines.map(line => {  
       line = line.trim();  
       if (!line) return null;  
         
@@ -4255,17 +4268,19 @@ function initDatabase() {
         fields.push(currentField.trim().replace(/^"|"$/g, ''));  
       }  
         
-      // 确保至少有8个字段（根据新的数据结构）  
+      // 确保至少有10个字段（根据新的数据结构）  
       while (fields.length < 10) {  
         fields.push('');  
       }  
         
       return fields;  
-    }).filter(row => row !== null && row.length > 0);  
+    }).filter(row => {  
+      // 过滤掉空行和任务名为空的行  
+      return row !== null && row.length > 0 && row[4] && row[4].trim() !== '';  
+    });  
       
     console.log("数据库加载成功，条目数:", taskDatabase.length);  
-      
-    // 直接为文本框添加事件监听器，确保捕获所有滚动事件  
+	// 直接为文本框添加事件监听器，确保捕获所有滚动事件  
     setTimeout(function() {  
       const textareas = document.querySelectorAll('#inputData, #resultArea');  
       textareas.forEach(textarea => {  
@@ -4307,89 +4322,269 @@ function initDatabase() {
 function findTask(inputText) {  
   const input = inputText.trim();  
     
+  // 如果输入为空，返回null  
+  if (!input) return null;  
+    
+  // 标准化输入：去除多余空格，标准化特殊字符  
+  const normalizedInput = input  
+    .replace(/\s+/g, ' ')  // 多个空格变为一个  
+    .replace(/[`'"]/g, '') // 移除引号和反引号  
+    .trim();  
+    
   // 尝试多种分隔符匹配  
   const separators = [' - ', ' – ', ' — ', '-', '–', '—'];  
     
+  // 检测是否包含分隔符  
+  let hasSeparator = false;  
+  let charName = '';  
+  let taskName = '';  
+    
   for (const separator of separators) {  
     const separatorIndex = input.indexOf(separator);  
-      
     if (separatorIndex > 0) {  
-      // 找到分隔符，分割为角色名和任务名  
-      const charName = input.substring(0, separatorIndex).trim();  
-      const taskName = input.substring(separatorIndex + separator.length).trim();  
+      hasSeparator = true;  
+      charName = input.substring(0, separatorIndex).trim();  
+      taskName = input.substring(separatorIndex + separator.length).trim();  
+      break;  
+    }  
+  }  
+    
+  // 如果有分隔符，说明用户明确提供了人物信息  
+  if (hasSeparator) {  
+    // 标准化角色名和任务名  
+    const normalizedCharName = charName.toLowerCase().replace(/[`'"]/g, '');  
+    const normalizedTaskName = taskName.toLowerCase().replace(/[`'"]/g, '');  
+      
+    // 首先检查数据库中是否存在这个人物（精确匹配）  
+    const characterExists = taskDatabase.some(row => {  
+      const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      return rowCharName === normalizedCharName;  
+    });  
+      
+    // 如果人物不存在，直接返回null，禁用所有匹配  
+    if (!characterExists) {  
+      console.log(`人物 "${charName}" 在数据库中不存在，禁用所有匹配`);  
+      return null;  
+    }  
+      
+    // 1. 首先尝试完全匹配角色名和任务名  
+    const exactMatch = taskDatabase.find(row => {  
+      const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
         
-      // 首先尝试完全匹配角色名和任务名  
-      const exactMatch = taskDatabase.find(row => {  
-        const rowCharName = row[0]?.trim();  
-        const rowTaskName = row[4]?.trim();  
-          
-        return rowCharName.toLowerCase() === charName.toLowerCase() &&   
-               rowTaskName.toLowerCase() === taskName.toLowerCase();  
+      return rowCharName === normalizedCharName &&   
+             rowTaskName === normalizedTaskName;  
+    });  
+      
+    if (exactMatch) {  
+      return {  
+        data: exactMatch,  
+        charName: charName,  
+        taskName: taskName,  
+        matchType: 'exact'  
+      };  
+    }  
+      
+    // 2. 在该人物下查找任务名的近似匹配  
+    // 只在该人物下进行任务名的近似匹配  
+    const characterTasks = taskDatabase.filter(row => {  
+      const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      return rowCharName === normalizedCharName;  
+    });  
+      
+    // 如果该人物没有任务，返回null  
+    if (characterTasks.length === 0) {  
+      return null;  
+    }  
+      
+    // 在该人物的任务中查找近似匹配  
+      
+    // 2.1 尝试任务名包含关系  
+    const taskContainsMatch = characterTasks.find(row => {  
+      const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      return rowTaskName.includes(normalizedTaskName) ||   
+             normalizedTaskName.includes(rowTaskName);  
+    });  
+      
+    if (taskContainsMatch) {  
+      return {  
+        data: taskContainsMatch,  
+        charName: charName,  
+        taskName: taskName,  
+        matchType: 'task_fuzzy_in_character'  
+      };  
+    }  
+      
+    // 2.2 尝试单词级别匹配  
+    const words = normalizedTaskName.split(/\s+/).filter(word => word.length >= 3);  
+    if (words.length > 0) {  
+      // 按单词长度降序排序，优先匹配长单词  
+      words.sort((a, b) => b.length - a.length);  
+        
+      // 尝试所有单词都匹配的  
+      const allWordsMatch = characterTasks.find(row => {  
+        const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+        return words.every(word => rowTaskName.includes(word));  
       });  
         
-      if (exactMatch) {  
+      if (allWordsMatch) {  
         return {  
-          data: exactMatch,  
+          data: allWordsMatch,  
           charName: charName,  
           taskName: taskName,  
-          matchType: 'exact'  
+          matchType: 'word_fuzzy_in_character'  
         };  
       }  
         
-      // 尝试模糊匹配任务名  
-      const fuzzyMatch = taskDatabase.find(row => {  
-        const rowTaskName = row[4]?.trim();  
-        return rowTaskName.toLowerCase() === taskName.toLowerCase();  
+      // 尝试部分单词匹配  
+      const partialWordsMatch = characterTasks.find(row => {  
+        const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+        const matchedWords = words.filter(word => rowTaskName.includes(word));  
+        return matchedWords.length >= Math.ceil(words.length / 2);  
       });  
         
-      if (fuzzyMatch) {  
+      if (partialWordsMatch) {  
         return {  
-          data: fuzzyMatch,  
+          data: partialWordsMatch,  
           charName: charName,  
           taskName: taskName,  
-          matchType: 'task_only'  
+          matchType: 'partial_word_fuzzy_in_character'  
+        };  
+      }  
+    }  
+      
+    // 如果在该人物下也找不到任何匹配，返回null  
+    return null;  
+  }  
+    
+  // 如果没有分隔符，将整个输入视为任务名，进行近似匹配  
+  const normalizedTaskName = normalizedInput.toLowerCase();  
+    
+  // 1. 精确匹配任务名  
+  const exactTaskMatch = taskDatabase.find(row => {  
+    const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+    return rowTaskName === normalizedTaskName;  
+  });  
+    
+  if (exactTaskMatch) {  
+    return {  
+      data: exactTaskMatch,  
+      charName: '',  
+      taskName: input,  
+      matchType: 'task_exact'  
+    };  
+  }  
+    
+  // 2. 单词级别模糊匹配  
+  const words = normalizedTaskName.split(/\s+/).filter(word => word.length >= 3);  
+    
+  if (words.length > 0) {  
+    // 按单词长度降序排序，优先匹配长单词  
+    words.sort((a, b) => b.length - a.length);  
+      
+    // 首先尝试所有单词都匹配的  
+    const allWordsMatch = taskDatabase.find(row => {  
+      const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      const searchIn = rowTaskName + ' ' + rowCharName;  
+        
+      return words.every(word => searchIn.includes(word));  
+    });  
+      
+    if (allWordsMatch) {  
+      return {  
+        data: allWordsMatch,  
+        charName: allWordsMatch[0]?.trim(),  
+        taskName: allWordsMatch[4]?.trim(),  
+        matchType: 'word_all_match'  
+      };  
+    }  
+      
+    // 尝试部分单词匹配（至少匹配一半的单词）  
+    const halfWordsMatch = taskDatabase.find(row => {  
+      const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+      const searchIn = rowTaskName + ' ' + rowCharName;  
+        
+      const matchedWords = words.filter(word => searchIn.includes(word));  
+      return matchedWords.length >= Math.ceil(words.length / 2);  
+    });  
+      
+    if (halfWordsMatch) {  
+      return {  
+        data: halfWordsMatch,  
+        charName: halfWordsMatch[0]?.trim(),  
+        taskName: halfWordsMatch[4]?.trim(),  
+        matchType: 'word_partial_match'  
+      };  
+    }  
+      
+    // 尝试单个最长单词匹配  
+    for (const word of words) {  
+      const wordMatch = taskDatabase.find(row => {  
+        const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+        const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+          
+        return rowTaskName.includes(word) || rowCharName.includes(word);  
+      });  
+        
+      if (wordMatch) {  
+        return {  
+          data: wordMatch,  
+          charName: wordMatch[0]?.trim(),  
+          taskName: wordMatch[4]?.trim(),  
+          matchType: 'single_word_match'  
         };  
       }  
     }  
   }  
     
-  // 如果没有找到分隔符或通过分隔符未找到匹配，尝试将整个输入作为任务名查找  
-  const taskOnlyMatch = taskDatabase.find(row => {  
-    const rowTaskName = row[4]?.trim();  
-    return rowTaskName.toLowerCase() === input.toLowerCase();  
-  });  
-    
-  if (taskOnlyMatch) {  
-    return {  
-      data: taskOnlyMatch,  
-      charName: '',  
-      taskName: input,  
-      matchType: 'task_only_no_char'  
-    };  
-  }  
-    
-  // 最后尝试模糊匹配（包含关系）  
-  const fuzzySearch = taskDatabase.find(row => {  
-    const rowTaskName = row[4]?.trim();  
-    const rowCharName = row[0]?.trim();  
+  // 3. 最后尝试字符级别的模糊匹配  
+  const charLevelMatch = taskDatabase.find(row => {  
+    const rowTaskName = row[4]?.trim().toLowerCase().replace(/[`'"]/g, '');  
+    const rowCharName = row[0]?.trim().toLowerCase().replace(/[`'"]/g, '');  
       
-    return rowTaskName.toLowerCase().includes(input.toLowerCase()) ||  
-           rowCharName.toLowerCase().includes(input.toLowerCase());  
+    // 确保任务名不为空  
+    if (!rowTaskName || rowTaskName === '') return false;  
+      
+    // 计算相似度（简单版）  
+    const calculateSimilarity = (str1, str2) => {  
+      const longer = str1.length > str2.length ? str1 : str2;  
+      const shorter = str1.length > str2.length ? str2 : str1;  
+        
+      if (longer.length === 0) return 0;  
+        
+      // 检查是否包含  
+      if (longer.includes(shorter)) return 0.8;  
+        
+      // 简单字符匹配  
+      let matches = 0;  
+      for (let i = 0; i < shorter.length; i++) {  
+        if (longer.indexOf(shorter[i]) !== -1) matches++;  
+      }  
+        
+      return matches / longer.length;  
+    };  
+      
+    const similarity1 = calculateSimilarity(rowTaskName, normalizedTaskName);  
+    const similarity2 = calculateSimilarity(rowCharName, normalizedTaskName);  
+      
+    return similarity1 > 0.6 || similarity2 > 0.6;  
   });  
     
-  if (fuzzySearch) {  
+  if (charLevelMatch) {  
     return {  
-      data: fuzzySearch,  
-      charName: fuzzySearch[0]?.trim(),  
-      taskName: fuzzySearch[4]?.trim(),  
-      matchType: 'fuzzy'  
+      data: charLevelMatch,  
+      charName: charLevelMatch[0]?.trim(),  
+      taskName: charLevelMatch[4]?.trim(),  
+      matchType: 'char_fuzzy_match'  
     };  
   }  
     
   return null;  
 }  
   
-// 主生成函数 - 修改以支持多种输入格式  
+// 主生成函数 - 修改以支持新的匹配策略  
 function translateTasks() {  
   const input = document.getElementById('inputData').value;  
   const lines = input.split('\n');  
@@ -4404,7 +4599,7 @@ function translateTasks() {
     // 使用增强的查找函数  
     const matchResult = findTask(line);  
   
-    if (matchResult) {  
+    if (matchResult && matchResult.data) {  
       foundCount++;  
       const data = matchResult.data;  
         
@@ -4413,7 +4608,7 @@ function translateTasks() {
       const level = data[1];  
       const partner = data[2];  
       const partnerLevel = data[3];  
-      const taskName = data[4];  
+      const storedTaskName = data[4];  
       const duration = data[5];  
       const building = data[6];  
       const happyTask = data[7];  
@@ -4439,29 +4634,80 @@ function translateTasks() {
   
       // 组合最终字符串  
       // 格式: Atta5 - Review a Report, 6h, No building, Alert (如果有描述会加上)  
-      let resultLine = `${headerStr} - ${taskName}, ${duration}, ${buildingStr}${happyTaskStr}`;  
+      let resultLine = `${headerStr} - ${storedTaskName}, ${duration}, ${buildingStr}${happyTaskStr}`;  
         
       // 如果有描述，添加到输出  
       if (description && description !== "" && description !== "Description Coming Soon...") {  
         resultLine += `, ${description}`;  
       }  
         
-      // 添加匹配类型提示（调试用，正式版可以移除）  
-      if (matchResult.matchType !== 'exact') {  
-        resultLine += ` [匹配类型: ${matchResult.matchType}]`;  
+      // 添加匹配类型信息（仅当不是精确匹配时）  
+      if (matchResult.matchType !== 'exact' && matchResult.matchType !== 'task_exact') {  
+        let matchTypeText = '';  
+        switch(matchResult.matchType) {  
+          case 'task_fuzzy_in_character':  
+          case 'word_fuzzy_in_character':  
+          case 'partial_word_fuzzy_in_character':  
+            matchTypeText = '[近似匹配: 仅在指定人物下]';  
+            break;  
+          case 'word_all_match':  
+            matchTypeText = '[近似匹配: 所有单词匹配]';  
+            break;  
+          case 'word_partial_match':  
+            matchTypeText = '[近似匹配: 部分单词匹配]';  
+            break;  
+          case 'single_word_match':  
+            matchTypeText = '[近似匹配: 单个单词匹配]';  
+            break;  
+          case 'char_fuzzy_match':  
+            matchTypeText = '[近似匹配: 字符相似匹配]';  
+            break;  
+          default:  
+            matchTypeText = '[近似匹配]';  
+        }  
+          
+        // 如果输入的任务名和存储的任务名不一致，添加提示  
+        if (matchResult.taskName && matchResult.taskName !== storedTaskName) {  
+          matchTypeText += ` (输入:"${matchResult.taskName}" → 匹配:"${storedTaskName}")`;  
+        }  
+          
+        resultLine += ` ${matchTypeText}`;  
       }  
         
       output.push(resultLine);  
   
     } else {  
       notFoundCount++;  
-      output.push(`${line}  [未找到该任务数据]`);  
+      // 检测是否包含分隔符  
+      const hasSeparator = /[-–—]\s*/.test(line);  
+        
+      if (hasSeparator) {  
+        // 尝试提取人物名  
+        let charName = '';  
+        for (const separator of [' - ', ' – ', ' — ', '-', '–', '—']) {  
+          const separatorIndex = line.indexOf(separator);  
+          if (separatorIndex > 0) {  
+            charName = line.substring(0, separatorIndex).trim();  
+            break;  
+          }  
+        }  
+          
+        if (charName) {  
+          output.push(`${line}  [未找到: 人物 "${charName}" 不存在或没有匹配的任务]`);  
+        } else {  
+          output.push(`${line}  [未找到精确匹配的任务数据]`);  
+        }  
+      } else {  
+        output.push(`${line}  [未找到匹配的任务数据]`);  
+      }  
     }  
   });  
   
   // 添加统计信息  
   if (foundCount > 0 || notFoundCount > 0) {  
-    const stats = `\n\n=== 统计 ===\n找到: ${foundCount} 个任务\n未找到: ${notFoundCount} 个任务`;  
+    const stats = `\n\n=== 统计 ===  
+找到: ${foundCount} 个任务  
+未找到: ${notFoundCount} 个任务`;  
     output.push(stats);  
   }  
   
