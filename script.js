@@ -4310,7 +4310,7 @@ function addWheelEventListener(element, options = {}) {
   
   // 防止滚轮事件冒泡
   element.addEventListener('wheel', function(e) {
-    // 首先阻止事件冒泡[1](@ref)
+    // 首先阻止事件冒泡[1](@ref)[4](@ref)
     e.stopPropagation();
     
     // 获取当前滚动位置和容器尺寸
@@ -4343,18 +4343,60 @@ function addWheelEventListener(element, options = {}) {
   }, { passive: false });
   
   // 防止触摸事件冒泡（移动端支持）
+  element.addEventListener('touchstart', function(e) {
+    // 记录触摸起始位置
+    this.touchStartY = e.touches[0].clientY;
+    this.touchStartX = e.touches[0].clientX;
+    this.isScrolling = false;
+  }, { passive: true });
+  
   element.addEventListener('touchmove', function(e) {
-    // 仅在元素有滚动空间时才阻止冒泡
-    if (this.scrollHeight > this.clientHeight) {
-      e.stopPropagation();
+    if (!this.scrollHeight || !this.clientHeight) return;
+    
+    const currentY = e.touches[0].clientY;
+    const currentX = e.touches[0].clientX;
+    const deltaY = currentY - this.touchStartY;
+    const deltaX = currentX - this.touchStartX;
+    
+    // 检查是否滚动到底部或顶部
+    const isAtTop = this.scrollTop === 0;
+    const isAtBottom = this.scrollHeight - this.scrollTop <= this.clientHeight + 1;
+    
+    // 判断滑动方向（主要考虑垂直滑动）
+    const isVerticalScroll = Math.abs(deltaY) > Math.abs(deltaX);
+    
+    if (isVerticalScroll) {
+      // 垂直滑动：检查边界条件
+      const shouldScroll = (deltaY < 0 && !isAtTop) || (deltaY > 0 && !isAtBottom);
+      
+      if (shouldScroll) {
+        // 阻止事件冒泡，只在元素内滚动[3](@ref)[6](@ref)[7](@ref)
+        e.stopPropagation();
+        this.isScrolling = true;
+      } else {
+        // 到达边界，允许事件传递
+        this.isScrolling = false;
+      }
+    } else {
+      // 水平滑动：检查是否有水平滚动空间
+      const hasHorizontalScroll = this.scrollWidth > this.clientWidth;
+      if (hasHorizontalScroll) {
+        // 有水平滚动空间，阻止事件冒泡
+        e.stopPropagation();
+        this.isScrolling = true;
+      }
     }
   }, { passive: false });
+  
+  element.addEventListener('touchend', function() {
+    this.isScrolling = false;
+  }, { passive: true });
 }
 
 // 初始化所有需要防止冒泡的元素
 setTimeout(function() {
-  // 处理表格元素
-  const tableElements = preventWheelBubble('#resultTable .ant-table-body', ['#resultTable']);
+  // 处理表格元素 - 修改选择器以匹配非Ant Design表格
+  const tableElements = preventWheelBubble('#resultTable', ['.table-wrapper', '#resultTableContainer']);
   tableElements.forEach(element => {
     addWheelEventListener(element, {
       allowBubbleAtTop: true,
@@ -4375,6 +4417,7 @@ setTimeout(function() {
   
   console.log(`已为 ${tableElements.length} 个表格元素和 ${textareaElements.length} 个输入框元素添加防冒泡监听器`);
 }, 500);
+
  
   } catch (e) {    
     console.error("数据解析失败:", e);    
