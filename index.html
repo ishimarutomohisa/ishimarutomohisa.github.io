@@ -4,9 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <link rel="icon" href="https://static.wikia.nocookie.net/disneymagicalkingdoms/images/e/ea/Update-16-app_icon.png" type="image/png">
-<title>DMK Update 101</title>
+<title>DMK Update</title>
 <!-- Swiper CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<!-- 引入 Font Awesome 图标库 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <!-- Highcharts Gantt CDN -->
 <script src="https://code.highcharts.com/gantt/highcharts-gantt.js"></script>
 <!-- Swiper JS -->
@@ -117,27 +119,140 @@
     margin: 0 auto;
   }
 
+/* --- 标题栏布局 (Desktop: 左右分布) --- */
   h1 {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* 允许换行，防止窄屏挤压 */
     align-items: center;
+    justify-content: space-between; /* ⚠️ 核心：让标题在左，按钮在右 */
     gap: 12px;
     margin: 0 0 16px 0;
+    width: 100%;
   }
 
+  /* 标题文字样式 */
   .outline-effect {
     color: #207CE2;
     text-shadow: 1px 1px 0 #fff, 2px 2px 4px rgba(30, 58, 138, 0.3);
     font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     font-size: clamp(20px, 4vw, 32px);
-    margin-right: auto;
+    /* 桌面端不需要 margin-right: auto，靠 justify-content 撑开 */
   }
 
+  /* --- 按钮组布局 (Desktop: 紧凑排列) --- */
   .btn-group {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    /* ⚠️ 桌面端不要设宽度100%，否则会换行 */
+    width: auto; 
+    margin: 0;
   }
+
+  /* --- 纯图标圆形按钮 --- */
+  .social-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-size: 18px;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    
+    /* ⚠️ 禁止压缩，保证圆形 */
+    flex: 0 0 auto;
+  }
+
+  .social-btn:active {
+    transform: scale(0.9);
+    filter: brightness(0.9);
+  }
+
+  /* --- 📱 移动端专属优化 📱 --- */
+  @media (max-width: 768px) {
+    /* 1. 标题栏在移动端变为垂直堆叠，按钮在下方 */
+    h1 {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .outline-effect {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    /* 2. 按钮组：Grid + Scroll Snap */
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* 一行3个 */
+      justify-items: center;
+      width: 100%;
+      gap: 15px 0; /* 行间距15px，列间距0(由justify处理) */
+      
+      /* ⚠️ 高度计算：
+         按钮(48px) + 上内边距(12px) + 下内边距(12px) = 72px 
+         稍微多给一点点容错空间，设为 74px */
+      height: 60px;
+      padding: 12px 0; 
+      
+      /* 滚动设置 */
+      overflow-y: auto;
+      overflow-x: hidden;
+      
+      /* 🌟 核心：垂直滚动捕捉 (Snap) 🌟 */
+      scroll-snap-type: y mandatory; 
+      
+      /* 隐藏滚动条 */
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      
+      /* 底部遮罩提示 */
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    }
+    
+    .btn-group::-webkit-scrollbar { display: none; }
+
+    /* 3. 按钮样式适配 */
+    .social-btn {
+      width: 48px;
+      height: 48px;
+      font-size: 22px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      
+      /* 🌟 配合父级，告诉浏览器这里是吸附点 🌟 */
+      scroll-snap-align: center;
+    }
+  }
+
+  /* --- 各平台颜色定义 --- */
+  
+  /* Patch Note: 渐变色 */
+  .btn-patch { background: linear-gradient(rgb(41, 210, 247) 6.16%, rgb(41, 143, 247) 95.06%); }
+  
+  /* Wiki: 青色 */
+  .btn-wiki { background-color: #520044; }
+
+  /* Facebook: 蓝色 */
+  .btn-fb { background-color: #1877F2; }
+
+  /* Discord: 紫蓝色 */
+  .btn-discord { background-color: #5865F2; }
+
+  /* Github: 深色 */
+  .btn-github { background-color: #24292e; }
+
+  /* Reddit: 橙色 */
+  .btn-reddit { background-color: #FF5700; }
 
   h1 button {
     background: var(--primary-blue);
@@ -475,12 +590,37 @@
       <div class="swiper-slide">
         <div class="content-card">
           <h1>
-            <span id="headerTitle" class="outline-effect">DMK Update 101</span>
-            <div class="btn-group">
-              <button id="btnPatch">Patch Note</button>
-              <button id="btnWiki">Wiki</button>
-              <button onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">Facebook</button>
-              <button onclick="window.open('https://discord.com')">Discord</button>
+            <span id="headerTitle" class="outline-effect">DMK Update</span>
+            <div class="btn-group swiper-no-swiping">
+              <!-- Patch Note -->
+              <button id="btnPatch" class="social-btn btn-patch" title="Patch Note">
+                <i class="fa-solid fa-file-lines"></i>
+              </button>
+              
+              <!-- Wiki -->
+              <button id="btnWiki" class="social-btn btn-wiki" title="Wiki">
+                <i class="fa-solid fa-book-open"></i>
+              </button>
+              
+              <!-- Facebook -->
+              <button class="social-btn btn-fb" title="Facebook" onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">
+                <i class="fa-brands fa-facebook-f"></i>
+              </button>
+              
+              <!-- Discord -->
+              <button class="social-btn btn-discord" title="Discord" onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">
+                <i class="fa-brands fa-discord"></i>
+              </button>
+              
+              <!-- Github -->
+              <button class="social-btn btn-github" title="Github" onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io')">
+                <i class="fa-brands fa-github"></i>
+              </button>
+              
+              <!-- Reddit -->
+              <button class="social-btn btn-reddit" title="Reddit" onclick="window.open('https://www.reddit.com/r/disneymagickingdoms/')">
+                <i class="fa-brands fa-reddit-alien"></i>
+              </button>
             </div>
           </h1>
           
@@ -595,7 +735,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Page Content Init (使用 update.js 中的 CONFIG)
-  document.title = `DMK Update ${CONFIG.version}`;
   const headerTitle = document.getElementById('headerTitle');
   if(headerTitle) headerTitle.innerText = `DMK Update ${CONFIG.version}`;
   
@@ -765,7 +904,7 @@ if (noteEl) {
     } else {
         // 🔵 移动端模式：根据天数计算宽度，强制横向滚动
         const totalDays = Math.ceil((maxEndMs - xAxisMin) / (24 * 3600 * 1000));
-        const pxPerDay = 50; // 每天 50px
+        const pxPerDay = 25; // 每天 50px
         const wrapperWidth = document.querySelector('.chart-wrapper').clientWidth || screenWidth;
         finalWidth = Math.max(wrapperWidth, totalDays * pxPerDay);
         
