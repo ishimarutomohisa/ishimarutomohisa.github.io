@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DMK金杯赛 - 万能适配同步器</title>
-    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+	<script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/leancloud-storage/4.12.0/av-min.js"></script>
     <style>
         :root { --primary: #6200ee; --secondary: #03dac6; --my-choice: #ff9800; }
         body { font-family: -apple-system, system-ui, sans-serif; background: #f4f7f9; margin: 0; padding: 15px; }
@@ -30,6 +30,12 @@
         
         .btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
         .btn:active { transform: scale(0.98); }
+		.btn:disabled {
+    background: #ccc;           /* 灰色背景 */
+    cursor: not-allowed;        /* 禁用光标 */
+    transform: none !important; /* 取消点击缩放效果 */
+    color: #666;
+}
         .hint { font-size: 12px; color: #888; line-height: 1.6; background: #fdfdfd; padding: 10px; border-radius: 6px; }
     </style>
 </head>
@@ -54,9 +60,11 @@
             <label style="font-weight: bold; font-size: 14px; color: #444;">更新我的可用时间：</label>
             <input type="text" id="timeInput" placeholder="例: 10:00-10:10, 12:00-12:30">
             <div class="hint">
-                ✅ 智能识别：支持空格、中英文逗号(，,)、波浪号(~)及破折号(-)。<br>
-                💡 技巧：输入范围越广，越容易与大家达成“共振”。
-            </div>
+    ✅ <b>已开启全兼容识别：</b><br>
+    • 支持单个时间点 (如 <code>20:05</code>)<br>
+    • 支持时段 (如 <code>20:00-20:10</code>)<br>
+    • 自动识别中英文冒号、逗号和空格
+</div>
         </div>
         <button id="submitBtn" class="btn" onclick="submitData()">提交并刷新统计</button>
     </div>
@@ -71,7 +79,7 @@
         APP_ID: '0c2sNjTnLZPcSDYXu6MvDM0O-MdYXbMMI',
         APP_KEY: 'cTljOeagmHnNescs0ee5jURr',
         SERVER_URL: 'https://0c2snjtn.api.lncldglobal.com',
-        DEADLINE: new Date('2025-12-19T16:30:00') 
+        DEADLINE: new Date('2025-12-19T16:50:00') 
     };
 
     AV.init({ appId: CONFIG.APP_ID, appKey: CONFIG.APP_KEY, serverURL: CONFIG.SERVER_URL });
@@ -79,15 +87,27 @@
     let userIP = '';
     let mySelectedMinutes = [];
 
-    async function init() {
-        try {
-            const resp = await fetch('https://api.ipify.org?format=json');
-            const data = await resp.json();
-            userIP = data.ip;
-            checkDeadline();
-            await loadAllData();
-        } catch (e) { alert("网络连接失败，请检查网络或LeanCloud配置"); }
-    }
+	async function init() {
+		try {
+			// 使用网易的国内镜像接口，加载速度极快
+			const resp = await fetch('https://api.ip.sb/ip'); 
+			// 如果上面那个不行，备选：https://vv.video.qq.com/checktime?otype=json
+			
+			const text = await resp.text();
+			userIP = text.trim(); // 获取纯文本形式的 IP
+			
+			console.log("识别到玩家IP:", userIP);
+
+			checkDeadline();
+			await loadAllData();
+		} catch (e) {
+			console.error("IP获取失败，尝试匿名加载", e);
+			// 如果IP接口也挂了，为了不影响使用，给一个默认标识
+			userIP = 'anonymous'; 
+			checkDeadline();
+			await loadAllData();
+		}
+	}
 
     function checkDeadline() {
         if (new Date() > CONFIG.DEADLINE) {
@@ -155,50 +175,99 @@
         }
     }
 
-    async function submitData() {
-        if (checkDeadline()) return;
-        const raw = document.getElementById('timeInput').value;
-        const minutes = parseToMinutes(raw);
-        
-        if(minutes.length === 0) return alert("未能识别有效时间，请检查格式 (例 10:00-10:10)");
+	async function submitData() {
+		if (checkDeadline()) return;
+		
+		const btn = document.getElementById('submitBtn');
+		const raw = document.getElementById('timeInput').value;
+		const minutes = parseToMinutes(raw);
+		
+		if (minutes.length === 0) return alert("未能识别有效时间，请检查格式 (例 10:00-10:10)");
 
-        const query = new AV.Query('MinuteVote');
-        query.equalTo('ip', userIP);
-        let obj = await query.first() || new Vote();
-        
-        obj.set('ip', userIP);
-        obj.set('choice', minutes);
-        obj.set('rawInput', raw);
-        await obj.save();
-        
-        alert("提交成功！");
-        loadAllData();
-    }
+		// --- 开启冷却锁定 ---
+		btn.disabled = true;
+		const originalText = btn.innerText;
+		
+		try {
+			const query = new AV.Query('MinuteVote');
+			query.equalTo('ip', userIP);
+			let obj = await query.first() || new Vote();
+			
+			obj.set('ip', userIP);
+			obj.set('choice', minutes);
+			obj.set('rawInput', raw);
+			await obj.save();
+			
+			alert("提交成功！");
+			await loadAllData(); // 提交成功后刷新数据
+			
+			// 成功后开始 30 秒倒计时
+			startCooldown(btn, 30, originalText);
 
-    function parseToMinutes(str) {
-        const result = new Set();
-        // 核心适配正则：替换中文逗号，按英文逗号分割
-        const parts = str.replace(/，/g, ',').split(',').filter(p => p.trim());
+		} catch (e) {
+			console.error(e);
+			alert("提交失败，请检查网络或稍后再试");
+			// 失败时立即恢复按钮，允许重试
+			btn.disabled = false;
+			btn.innerText = originalText;
+		}
+	}
 
-        parts.forEach(p => {
-            const range = p.trim().split(/[-~～—]/); 
-            if (range.length === 2) {
-                const s = timeToMin(range[0].trim());
-                const e = timeToMin(range[1].trim());
-                if(!isNaN(s) && !isNaN(e)) {
-                    // 确保从小到大循环
-                    for (let i = Math.min(s, e); i <= Math.max(s, e); i++) result.add(i);
-                }
-            }
-        });
-        return Array.from(result);
-    }
+	// 新增倒计时逻辑函数
+	function startCooldown(btn, seconds, text) {
+		let timeLeft = seconds;
+		
+		const timer = setInterval(() => {
+			if (timeLeft <= 0) {
+				clearInterval(timer);
+				btn.disabled = false;
+				btn.innerText = text;
+			} else {
+				btn.innerText = `已提交 (冷却中 ${timeLeft}s)`;
+				timeLeft--;
+			}
+		}, 1000);
+	}
 
-    function timeToMin(t) {
-        const parts = t.split(':');
-        if(parts.length !== 2) return NaN;
-        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    }
+	function parseToMinutes(str) {
+		const result = new Set();
+		// 1. 统一分隔符：将中文逗号、分号、空格全部转为英文逗号
+		// 2. 按逗号分割，并过滤掉空项
+		const parts = str.replace(/[，；; ]/g, ',').split(',').filter(p => p.trim());
+
+		parts.forEach(p => {
+			// 3. 统一冒号和连接符：将中文冒号转为英文，中文波浪线等转为标准横杠
+			const cleanPart = p.trim().replace(/：/g, ':').replace(/[~～—]/g, '-');
+			
+			if (cleanPart.includes('-')) {
+				// 处理时间段：例如 10:00-10:10
+				const range = cleanPart.split('-');
+				if (range.length === 2) {
+					const s = timeToMin(range[0].trim());
+					const e = timeToMin(range[1].trim());
+					if (!isNaN(s) && !isNaN(e)) {
+						for (let i = Math.min(s, e); i <= Math.max(s, e); i++) result.add(i);
+					}
+				}
+			} else {
+				// 处理单个时间点：例如 20:05
+				const t = timeToMin(cleanPart);
+				if (!isNaN(t)) result.add(t);
+			}
+		});
+		return Array.from(result);
+	}
+
+	function timeToMin(t) {
+		// 兼容中文冒号和英文冒号
+		const cleanT = t.replace(/：/g, ':');
+		const parts = cleanT.split(':');
+		if (parts.length !== 2) return NaN;
+		const h = parseInt(parts[0]);
+		const m = parseInt(parts[1]);
+		if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return NaN;
+		return h * 60 + m;
+	}
 
     function minToTime(m) {
         return `${Math.floor(m/60).toString().padStart(2,'0')}:${(m%60).toString().padStart(2,'0')}`;
