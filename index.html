@@ -5,17 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <link rel="icon" href="https://static.wikia.nocookie.net/disneymagicalkingdoms/images/e/ea/Update-16-app_icon.png" type="image/png">
 <title>DMK Update</title>
-<!-- Swiper CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <!-- 引入 Font Awesome 图标库 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <!-- Highcharts Gantt CDN -->
 <script src="https://code.highcharts.com/gantt/highcharts-gantt.js"></script>
-<!-- Swiper JS -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <!-- 引入数据文件 -->
 <script src="data.js"></script> <!-- 任务翻译数据库 -->
-<script src="update.js"></script> <!-- ⚠️ 新增这行：版本和排期配置 -->
+<script src="update.js"></script> <!-- 版本和排期配置 -->
 
 <style>
   :root {
@@ -31,135 +27,66 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     background: var(--bg-color);
     color: var(--text-color);
-    height: 100vh;
-    overflow: hidden; /* Prevent body scroll, let Swiper handle it */
+    overflow-y: auto; 
+    padding-bottom: 50px;
   }
-  
-  /* --- 新增：顶部导航栏样式 --- */
-  .top-nav {
-    height: 50px; /* 固定高度 */
-    width: 100%;
-    background: #fff;
+
+  .main-container {
+    max-width: 1000px;
+    margin: 0 auto;
     display: flex;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    z-index: 100;
-    position: relative;
+    flex-direction: column;
+    gap: 30px; 
   }
 
-  .nav-item {
-    flex: 1; /* 均分宽度 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 600;
-    color: #666;
-    cursor: pointer;
-    transition: all 0.3s;
-    border-bottom: 3px solid transparent;
-  }
-
-  /* 激活状态 */
-  .nav-item.active {
-    color: var(--primary-blue);
-    border-bottom-color: var(--primary-blue);
-    background-color: #f0f7ff;
-  }
-
-  /* --- Swiper Structure --- */
-  .swiper {
-    width: 100%;
-    height: 100vh;
-    /* ⚠️ 关键：高度减去导航栏的 50px */
-    height: calc(100vh - 50px);
-    height: calc(100dvh - 50px); 
-    margin-top: 0;
-  }
-
-  .swiper-slide {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 20px;
-    box-sizing: border-box;
-    background: var(--bg-color);
-    /* Hide scrollbar for slide itself to look cleaner */
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-  }
-  
-  .swiper-slide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background-color: var(--primary-blue);
-    opacity: 0.5;
-  }
-
-  .swiper-pagination-bullet-active {
-    opacity: 1;
-  }
-
-  /* --- Components --- */
   .content-card {
     background: var(--card-bg);
     width: 100%;
-    max-width: 1000px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     padding: 24px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    margin: 0 auto;
   }
 
-/* --- 标题栏布局 (Desktop: 左右分布) --- */
+  /* --- 标题栏 --- */
   h1 {
     display: flex;
-    flex-wrap: wrap; /* 允许换行，防止窄屏挤压 */
+    flex-wrap: wrap; 
     align-items: center;
-    justify-content: space-between; /* ⚠️ 核心：让标题在左，按钮在右 */
+    justify-content: space-between; 
     gap: 12px;
     margin: 0 0 16px 0;
     width: 100%;
   }
 
-  /* 标题文字样式 */
   .outline-effect {
     color: #207CE2;
     text-shadow: 1px 1px 0 #fff, 2px 2px 4px rgba(30, 58, 138, 0.3);
     font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     font-size: clamp(20px, 4vw, 32px);
-    /* 桌面端不需要 margin-right: auto，靠 justify-content 撑开 */
   }
 
-  /* --- 按钮组布局 (Desktop: 紧凑排列) --- */
   .btn-group {
     display: flex;
     gap: 10px;
     align-items: center;
-    /* ⚠️ 桌面端不要设宽度100%，否则会换行 */
     width: auto; 
     margin: 0;
   }
 
-  /* --- 纯图标圆形按钮 --- */
   .social-btn {
     width: 38px;
     height: 38px;
     border: none;
     border-radius: 50%;
-    
     display: flex;
     align-items: center;
     justify-content: center;
-    
     font-size: 18px;
     color: #fff;
     cursor: pointer;
@@ -167,108 +94,35 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     -webkit-tap-highlight-color: transparent;
     outline: none;
-    
-    /* ⚠️ 禁止压缩，保证圆形 */
     flex: 0 0 auto;
   }
 
-  .social-btn:active {
-    transform: scale(0.9);
-    filter: brightness(0.9);
-  }
+  .social-btn:active { transform: scale(0.9); filter: brightness(0.9); }
 
-  /* --- 📱 移动端专属优化 📱 --- */
   @media (max-width: 768px) {
-    /* 1. 标题栏在移动端变为垂直堆叠，按钮在下方 */
-    h1 {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .outline-effect {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-
-    /* 2. 按钮组：Grid + Scroll Snap */
+    h1 { flex-direction: column; align-items: flex-start; }
+    .outline-effect { width: 100%; margin-bottom: 5px; }
     .btn-group {
       display: grid;
-      grid-template-columns: repeat(3, 1fr); /* 一行3个 */
+      grid-template-columns: repeat(3, 1fr);
       justify-items: center;
       width: 100%;
-      gap: 15px 0; /* 行间距15px，列间距0(由justify处理) */
-      
-      /* ⚠️ 高度计算：
-         按钮(48px) + 上内边距(12px) + 下内边距(12px) = 72px 
-         稍微多给一点点容错空间，设为 74px */
+      gap: 15px 0;
       height: 60px;
       padding: 12px 0; 
-      
-      /* 滚动设置 */
       overflow-y: auto;
-      overflow-x: hidden;
-      
-      /* 🌟 核心：垂直滚动捕捉 (Snap) 🌟 */
       scroll-snap-type: y mandatory; 
-      
-      /* 隐藏滚动条 */
       scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      
-      /* 底部遮罩提示 */
-      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
     }
-    
-    .btn-group::-webkit-scrollbar { display: none; }
-
-    /* 3. 按钮样式适配 */
-    .social-btn {
-      width: 48px;
-      height: 48px;
-      font-size: 22px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-      
-      /* 🌟 配合父级，告诉浏览器这里是吸附点 🌟 */
-      scroll-snap-align: center;
-    }
+    .social-btn { width: 48px; height: 48px; font-size: 22px; scroll-snap-align: center; }
   }
 
-  /* --- 各平台颜色定义 --- */
-  
-  /* Patch Note: 渐变色 */
   .btn-patch { background: linear-gradient(rgb(41, 210, 247) 6.16%, rgb(41, 143, 247) 95.06%); }
-  
-  /* Wiki: 青色 */
   .btn-wiki { background-color: #520044; }
-
-  /* Facebook: 蓝色 */
   .btn-fb { background-color: #1877F2; }
-
-  /* Discord: 紫蓝色 */
   .btn-discord { background-color: #5865F2; }
-
-  /* Github: 深色 */
   .btn-github { background-color: #24292e; }
-
-  /* Reddit: 橙色 */
   .btn-reddit { background-color: #FF5700; }
-
-  h1 button {
-    background: var(--primary-blue);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s;
-  }
-
-  h1 button:hover {
-    background: var(--primary-hover);
-  }
 
   .note {
     color: #666;
@@ -278,99 +132,54 @@
     padding: 8px 12px;
     border-radius: 4px;
     border-left: 4px solid #ffc107;
-    /* 👇👇👇 新增这 3 行 👇👇👇 */
-    max-height: 100px;       /* 限制最大高度，避免占据太多屏幕 */
-    overflow-y: auto;        /* 内容超长时，显示内部滚动条 */
-    white-space: pre-wrap;   /* 确保长文本自动换行 */
+    max-height: 100px;       
+    overflow-y: auto;        
+    white-space: pre-wrap;   
   }
 
-  .top-image {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    background-color: #eee; /* Placeholder color */
-    min-height: 100px;
+  /* --- Chart --- */
+  .chart-section { width: 100%; margin-bottom: 20px; }
+  .chart-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 8px;
+      padding-left: 4px;
+      border-left: 4px solid var(--primary-blue);
   }
 
-/* --- Chart --- */
   .chart-wrapper {
     width: 100%;
-    overflow-x: auto;          /* ⚠️ 核心：允许横向滚动 */
-    -webkit-overflow-scrolling: touch; /* iOS 顺滑滚动支持 */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid #eee;
     border-radius: 6px;
     background: #fff;
     padding-bottom: 4px;
-    
-    /* ⚠️ 确保该区域不触发 Swiper 翻页，需配合 JS 中的 noSwipingClass */
     touch-action: pan-x; 
-    
-    height: auto; 
-    min-height: 300px;
-    overscroll-behavior-x: contain; /* 防止滚动到底部时触发浏览器的后退 */
+    min-height: 200px;
+    overscroll-behavior-x: contain;
   }
   
-  .chart-wrapper::-webkit-scrollbar { height: 6px; } /* 滚动条稍微变细 */
+  .chart-wrapper::-webkit-scrollbar { height: 6px; } 
   .chart-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
   
-  /* Highcharts 容器 */
-  #container { 
-    display: block;
-    /* ⚠️ 宽度将由 JS 根据日期跨度动态计算 */
-    /* 高度由 JS 控制 */
-  }
+  .gantt-container { display: block; }
 
-  /* --- Translator Page --- */
-  .translator-page {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  .translator-container {
-    width: 100%;
-    /* 移除max-width限制以利用大屏 */
-    padding: 10px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-  }
-
+  /* --- Translator --- */
   .translator-container h2 {
     color: #207CE2;
     text-align: center;
     margin: 0 0 20px 0;
     font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     text-shadow: 1px 1px 0 #fff, 2px 2px 4px rgba(30, 58, 138, 0.3);
-    font-size: 32px;
+    font-size: 28px;
   }
 
-  .translator-content {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    flex: 1;
-  }
+  .translator-content { display: flex; gap: 20px; flex-wrap: wrap; width: 100%; }
+  .translator-box { flex: 1; min-width: 300px; display: flex; flex-direction: column; }
+  .translator-box label { font-weight: bold; margin-bottom: 8px; color: #333; font-size: 16px; }
 
-  .translator-box {
-    flex: 1;
-    min-width: 300px; /* Minimum width before stacking */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .translator-box label {
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: #333;
-    font-size: 16px;
-  }
-
-  /* Input Textarea */
   .translator-box textarea {
     width: 100%;
     height: 400px;
@@ -382,75 +191,28 @@
     resize: none;
     box-sizing: border-box;
     background-color: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     line-height: 1.5;
     white-space: pre-wrap;
   }
 
-  .translator-box textarea:focus {
-    border-color: var(--primary-blue);
-    outline: none;
-  }
-
-  /* Table Wrapper */
   .table-wrapper {
     width: 100%;
-    min-height: 400px; /* Match textarea height */
-	height: auto;
-    overflow: auto; /* Enable both scrollbars */
+    height: auto;
+    min-height: 400px; 
+    max-height: 600px;
+    overflow: auto;
     border: 2px solid var(--border-color);
     border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
 
-  /* Custom Scrollbars */
-  textarea::-webkit-scrollbar, 
-  .table-wrapper::-webkit-scrollbar {
-    width: var(--scrollbar-width);
-    height: var(--scrollbar-width);
-  }
-  textarea::-webkit-scrollbar-track,
-  .table-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  textarea::-webkit-scrollbar-thumb,
-  .table-wrapper::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
-  }
-  textarea::-webkit-scrollbar-thumb:hover,
-  .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #999;
-  }
-
-  /* Table Styles */
-  .dmk-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px;
-  }
-
+  .dmk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
   .dmk-table thead th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa;
-    color: var(--primary-blue);
-    padding: 12px 10px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #e0e0e0;
-    cursor: pointer;
-    z-index: 10;
-    white-space: nowrap;
-    user-select: none;
+    position: sticky; top: 0; background-color: #f8f9fa; color: var(--primary-blue);
+    padding: 12px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e0e0e0;
+    cursor: pointer; z-index: 10; white-space: nowrap; user-select: none;
   }
-  
   .dmk-table thead th:hover { background-color: #e3f2fd; }
-
-  /* Sort Indicators */
   .dmk-table thead th::after { content: '↕'; font-size: 12px; margin-left: 5px; opacity: 0.3; }
   .dmk-table thead th.asc::after { content: '↑'; opacity: 1; color: var(--primary-blue); }
   .dmk-table thead th.desc::after { content: '↓'; opacity: 1; color: var(--primary-blue); }
@@ -458,189 +220,74 @@
   .dmk-table tbody tr { border-bottom: 1px solid #eee; }
   .dmk-table tbody tr:nth-of-type(even) { background-color: #fcfcfc; }
   .dmk-table tbody tr:hover { background-color: #f0f7ff; }
-  
-  .dmk-table tbody td {
-    padding: 10px;
-    line-height: 1.4;
-    white-space: nowrap; 
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .dmk-table tbody td { padding: 10px; line-height: 1.4; white-space: nowrap; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
 
-  /* Controls */
-  .translator-controls {
-    margin: 20px 0;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-
+  .translator-controls { margin: 15px 0 0 0; width: 100%; }
   .generate-btn {
     background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 48px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s;
-    outline: none;
+    color: white; border: none; border-radius: 12px; padding: 15px;
+    font-size: 18px; font-weight: bold; cursor: pointer; width: 100%;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.4); transition: transform 0.2s;
   }
-  
-  .generate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.6);
-  }
-  
   .generate-btn:active { transform: translateY(1px); }
+  #tableStats { margin-top: 10px; font-size: 13px; color: #666; text-align: right; }
 
-  #tableStats {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #666;
-    text-align: right;
-  }
-
-/* 移动端适配 */
   @media (max-width: 768px) {
     .content-card { padding: 15px; }
-    h1 { flex-direction: column; align-items: flex-start; }
-    .btn-group { width: 100%; }
-    h1 button { flex: 1; text-align: center; }
-    
     .translator-content { flex-direction: column; gap: 15px; }
-    .translator-box textarea, .table-wrapper { min-height: 250px; height: auto;}
-
-    /* --- 表格移动端优化开始 --- */
-
-    /* 1. 强制隐藏横向滚动条 */
-    .table-wrapper {
-      overflow-x: hidden; 
-    }
-    
-    .dmk-table { 
-      font-size: 12px; 
-      table-layout: fixed; /* 固定布局，确保宽度生效 */
-      width: 100%;
-    }
-
-    /* 允许内容换行 */
-    .dmk-table tbody td { 
-      white-space: normal;
-      word-break: break-word;
-      vertical-align: middle;
-    }
-
-    /* 表头不换行 */
-    .dmk-table thead th {
-      white-space: nowrap; 
-      padding: 8px 4px;
-    }
-
-    /* 隐藏第4、5列 */
+    .translator-box textarea, .table-wrapper { min-height: 250px; }
+    .table-wrapper { overflow-x: hidden; }
+    .dmk-table { font-size: 12px; table-layout: fixed; width: 100%; }
+    .dmk-table tbody td { white-space: normal; word-break: break-word; vertical-align: middle; }
     .dmk-table th:nth-child(4), .dmk-table td:nth-child(4),
-    .dmk-table th:nth-child(5), .dmk-table td:nth-child(5) {
-      display: none;
-    }
-
-    /* --- 列宽精细调整 --- */
-    
-    /* 1. 角色名：25% */
-    .dmk-table th:nth-child(1), .dmk-table td:nth-child(1) { 
-      width: 25%; 
-      padding: 8px 4px;
-    }
-    
-    /* 2. 任务名：60% (最大化空间) */
-    .dmk-table th:nth-child(2), .dmk-table td:nth-child(2) { 
-      width: 60%; 
-      font-weight: bold;
-      padding: 8px 4px;
-    }
-    
-    /* 3. 时长：15% (极窄模式) */
-    .dmk-table th:nth-child(3), .dmk-table td:nth-child(3) { 
-      width: 15%; 
-      text-align: center;
-      padding: 8px 0; /* 去掉左右内边距，防止文字被挤下去 */
-      white-space: nowrap;
-    }
-    
-    /* --- 表格移动端优化结束 --- */
+    .dmk-table th:nth-child(5), .dmk-table td:nth-child(5) { display: none; }
+    .dmk-table th:nth-child(1), .dmk-table td:nth-child(1) { width: 25%; padding: 8px 4px; }
+    .dmk-table th:nth-child(2), .dmk-table td:nth-child(2) { width: 60%; font-weight: bold; padding: 8px 4px; }
+    .dmk-table th:nth-child(3), .dmk-table td:nth-child(3) { width: 15%; text-align: center; padding: 8px 0; white-space: nowrap; }
   }
 </style>
 </head>
 <body>
 
-  <!-- 👇👇👇 新增：顶部导航菜单 👇👇👇 -->
-  <nav class="top-nav">
-    <!-- data-index 对应 swiper 的 slide 索引 -->
-    <div class="nav-item active" data-index="0">Update Info</div>
-    <div class="nav-item" data-index="1">Translator</div>
-  </nav>
-  <!-- 👆👆👆 新增结束 👆👆👆 -->
-
-  <div class="swiper">
-    <div class="swiper-wrapper">
-      
-      <!-- Slide 1: Patch Info & Gantt -->
-      <div class="swiper-slide">
-        <div class="content-card">
-          <h1>
+  <div class="main-container">
+    
+    <!-- 模块 1: 更新信息和甘特图 -->
+    <div class="content-card">
+        <h1>
             <span id="headerTitle" class="outline-effect">DMK Update</span>
-            <div class="btn-group swiper-no-swiping">
-              <!-- Patch Note -->
-              <button id="btnPatch" class="social-btn btn-patch" title="Patch Note">
-                <i class="fa-solid fa-file-lines"></i>
-              </button>
-              
-              <!-- Wiki -->
-              <button id="btnWiki" class="social-btn btn-wiki" title="Wiki">
-                <i class="fa-solid fa-book-open"></i>
-              </button>
-              
-              <!-- Facebook -->
-              <button class="social-btn btn-fb" title="Facebook" onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')">
-                <i class="fa-brands fa-facebook-f"></i>
-              </button>
-              
-              <!-- Discord -->
-              <button class="social-btn btn-discord" title="Discord" onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')">
-                <i class="fa-brands fa-discord"></i>
-              </button>
-              
-              <!-- Github -->
-              <button class="social-btn btn-github" title="Github" onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io')">
-                <i class="fa-brands fa-github"></i>
-              </button>
-              
-              <!-- Reddit -->
-              <button class="social-btn btn-reddit" title="Reddit" onclick="window.open('https://www.reddit.com/r/disneymagickingdoms/')">
-                <i class="fa-brands fa-reddit-alien"></i>
-              </button>
+            <div class="btn-group">
+              <button id="btnPatch" class="social-btn btn-patch" title="Patch Note"><i class="fa-solid fa-file-lines"></i></button>
+              <button id="btnWiki" class="social-btn btn-wiki" title="Wiki"><i class="fa-solid fa-book-open"></i></button>
+              <button class="social-btn btn-fb" title="Facebook" onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')"><i class="fa-brands fa-facebook-f"></i></button>
+              <button class="social-btn btn-discord" title="Discord" onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')"><i class="fa-brands fa-discord"></i></button>
+              <button class="social-btn btn-github" title="Github" onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io')"><i class="fa-brands fa-github"></i></button>
+              <button class="social-btn btn-reddit" title="Reddit" onclick="window.open('https://www.reddit.com/r/disneymagickingdoms/')"><i class="fa-brands fa-reddit-alien"></i></button>
             </div>
-          </h1>
-          
-          <div id="headerNote" class="note" style="display: none;"></div>
-          
-          <!-- 👇👇👇 修改后：src 为空，等待 JS 填充 👇👇👇 -->
-		<img id="topImage" class="top-image" src="" alt="Disney Magic Kingdoms Artwork" />
-          
-          <div class="chart-wrapper no-swipe">
-            <div id="container"></div>
-          </div>
-        </div>
-      </div>
+        </h1>
+        
+        <div id="headerNote" class="note" style="display: none;"></div>
 
-      <!-- Slide 2: Task Translator -->
-      <div class="swiper-slide">
-        <div class="translator-page">
-          <div class="translator-container">
+        <!-- 甘特图 1 (当前/过去) -->
+        <div id="chartWrapper1" class="chart-section" style="display:none;">
+            <div class="chart-title">Current / Recent Schedule</div>
+            <div class="chart-wrapper">
+                <div id="container1" class="gantt-container"></div>
+            </div>
+        </div>
+
+        <!-- 甘特图 2 (未来/接档) -->
+        <div id="chartWrapper2" class="chart-section" style="display:none;">
+            <div class="chart-title">Upcoming Schedule</div>
+            <div class="chart-wrapper">
+                <div id="container2" class="gantt-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模块 2: 任务信息生成器 -->
+    <div class="content-card">
+        <div class="translator-container">
             <h2>任务信息生成器</h2>
-            
             <div class="translator-content">
               <!-- Input -->
               <div class="translator-box">
@@ -650,13 +297,11 @@ Atta - Review a Report
 Atta - Have Fun at the Circus
 Dot - It's Just a Rock"></textarea>
                 
-                <!-- 👇👇👇 修改：按钮移到了这里 👇👇👇 -->
-                <div class="translator-controls" style="margin: 15px 0 0 0;">
-                  <button class="generate-btn" onclick="translateTasks()" style="width: 100%; border-radius: 12px; padding: 15px;">
+                <div class="translator-controls">
+                  <button class="generate-btn" onclick="translateTasks()">
                     ✨ 生成信息 ✨
                   </button>
                 </div>
-                <!-- 👆👆👆 修改结束 👆👆👆 -->
               </div>
               
               <!-- Output -->
@@ -681,353 +326,339 @@ Dot - It's Just a Rock"></textarea>
                 <div id="tableStats"></div>
               </div>
             </div>
-            
-            <!-- 🗑️ 旧的按钮位置代码已删除 -->
-            
-          </div>
         </div>
-      </div>
-
     </div>
+
   </div>
 
 <script>
 // ==========================================
 // 1. GLOBAL CONFIG & INITIALIZATION
 // ==========================================
-// ⚠️ 注意：CONFIG.version 现在由 update.js 提供
-
 document.addEventListener('DOMContentLoaded', function() {
-  // 检查 update.js 是否加载
   if (typeof CONFIG === 'undefined') {
     alert("错误：未找到配置文件 update.js");
     return;
   }
-
-  // Swiper Init (保持不变)
-  const swiper = new Swiper('.swiper', {
-    direction: 'horizontal', 
-    slidesPerView: 1,
-    spaceBetween: 0,
-    mousewheel: {
-      forceToAxis: true,
-      sensitivity: 1,
-      releaseOnEdges: true,
-      thresholdDelta: 50 
-    },
-    keyboard: { enabled: true },
-    threshold: 10, 
-    noSwipingClass: 'chart-wrapper', 
-  });
-
-  // 👇👇👇 新增：菜单栏联动逻辑 👇👇👇
-  const navItems = document.querySelectorAll('.nav-item');
-
-  // 1. 点击菜单 -> 切换 Swiper
-  navItems.forEach((item, index) => {
-    item.addEventListener('click', () => {
-      swiper.slideTo(index);
-    });
-  });
   
-  swiper.on('slideChange', function() {
-    const activeIndex = swiper.activeIndex;
-    
-    navItems.forEach(item => item.classList.remove('active'));
-    // 根据索引找到对应的菜单项并激活
-    // 注意：这里假设 navItems 的顺序和 slide 顺序一致
-    if(navItems[activeIndex]) {
-        navItems[activeIndex].classList.add('active');
-    }
-  });
-  
-  // Page Content Init (使用 update.js 中的 CONFIG)
+  // Set Title
   const headerTitle = document.getElementById('headerTitle');
   if(headerTitle) headerTitle.innerText = `DMK Update ${CONFIG.version}`;
   
-  // 👇👇👇 新增：Note 公告栏控制逻辑 👇👇👇
-const noteEl = document.getElementById('headerNote');
-if (noteEl) {
-  // 检查 CONFIG.note 是否存在且不为空
-  if (CONFIG.note && CONFIG.note.trim() !== '') {
-    noteEl.innerHTML = CONFIG.note; // 使用 innerHTML 支持简单的 bold 或 link
-    noteEl.style.display = 'block'; // 显示元素
-  } else {
-    noteEl.style.display = 'none';  // 隐藏元素
+  // Set Note
+  const noteEl = document.getElementById('headerNote');
+  if (noteEl) {
+    if (CONFIG.note && CONFIG.note.trim() !== '') {
+      noteEl.innerHTML = CONFIG.note; 
+      noteEl.style.display = 'block'; 
+    } else {
+      noteEl.style.display = 'none';
+    }
   }
-}
-// 👆👆👆 结束 Note 逻辑 👆👆👆
   
+  // Buttons
   const btnPatch = document.getElementById('btnPatch');
-  if(btnPatch) btnPatch.onclick = () => window.open(`https://www.disney-magic-kingdoms.com/news/patchnote_upd${CONFIG.version}`);
+  if(btnPatch) btnPatch.onclick = () => window.open(`https://www.disney-magic-kingdoms.com/news/patchnote_upd${CONFIG.version.split('+')[0].trim()}`);
   
   const btnWiki = document.getElementById('btnWiki');
-  if(btnWiki) btnWiki.onclick = () => window.open(`https://dmk.fandom.com/wiki/Category:Update_${CONFIG.version}`);
+  if(btnWiki) btnWiki.onclick = () => window.open(`https://dmk.fandom.com/wiki/Category:Update_${CONFIG.version.split('+')[0].trim()}`);
 
-  // Image Handling (修改后的逻辑)
-  const img = document.getElementById('topImage');
-  if(img) {
-    // 1. 从 CONFIG 中获取地址并赋值
-    if (CONFIG.topImage && CONFIG.topImage !== '') {
-        img.src = CONFIG.topImage;
-    } else {
-        // 如果没配置图片，直接隐藏
-        img.style.display = 'none';
-    }
-
-    // 2. 错误/超时处理 (保持原有逻辑，防止图片加载失败留白)
-    const timer = setTimeout(() => { if(!img.complete) img.style.display = 'none'; }, 5000);
-    img.onload = () => clearTimeout(timer);
-    img.onerror = () => { clearTimeout(timer); img.style.display = 'none'; };
-  }
+  // Init Tasks DB
+  initDatabase();
 });
 
 // ==========================================
-// 2. GANTT CHART LOGIC (Fixed Time & Dynamic PlotLines)
+// 2. DYNAMIC GANTT CHART LOGIC
 // ==========================================
 (function() {
-  if (typeof schedules === 'undefined') {
-    console.error("schedules is undefined. Check update.js");
-    return;
-  }
-
-  const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#3F51B5', '#00BCD4'];
-
-  // 时间计算函数 (保持 23点 UTC)
-  function toUtcMs(ymd) {
-    const parts = ymd.split('-').map(Number);
-    return Date.UTC(parts[0], parts[1]-1, parts[2], 23);
-  }
   
-  function endToUtcMsInclusive(ymd) {
-    const parts = ymd.split('-').map(Number);
-    return Date.UTC(parts[0], parts[1]-1, parts[2], 23);
-  }
+  // 定义通用渲染函数
+  // 定义通用渲染函数
+  function renderGanttChart(containerId, scheduleData, specialDatesData) {
+      if (!scheduleData || scheduleData.length === 0) return null;
 
-  const nowMs = Date.now() + 8*3600*1000;
+      const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#3F51B5', '#00BCD4'];
+      const nowMs = Date.now() + 8*3600*1000; 
 
-  // --- 1. 处理数据 (Series Data) ---
-  const seriesData = [];
-  const categories = [];
-  const plotBands = [];
-  let yIndex = 0;
-  let colorIdx = 0;
-
-  schedules.forEach((group, gIdx) => {
-    const tasks = group.tasks.sort((a,b) => a.start.localeCompare(b.start));
-    const lanes = [];
-    
-    tasks.forEach(task => {
-      const start = toUtcMs(task.start);
-      const end = endToUtcMsInclusive(task.end);
-      let placed = false;
-      
-      for(let lane of lanes) {
-        if(start >= lane[lane.length-1].end) { 
-          lane.push({ ...task, start, end });
-          placed = true;
-          break;
-        }
+      // 辅助函数：转换为UTC时间戳 (23:00)
+      function toUtcMs(ymd) {
+        const parts = ymd.split('-').map(Number);
+        return Date.UTC(parts[0], parts[1]-1, parts[2], 23); 
       }
-      if(!placed) lanes.push([{ ...task, start, end }]);
-    });
 
-    const startY = yIndex;
-    lanes.forEach((lane, lIdx) => {
-      categories.push(lIdx === 0 ? group.resource : '');
-      lane.forEach(t => {
-        seriesData.push({
-          id: `${group.resource}_${t.label}_${Math.random()}`,
-          name: t.label,
-          start: t.start,
-          end: t.end,
-          y: yIndex,
-          color: colors[colorIdx++ % colors.length]
+      // ==========================================
+      // [新增] 1. 外部排序：对 Group 进行排序
+      // ==========================================
+      // 逻辑：找出每个组内最早的一个任务时间，按这个时间对比，决定组的顺序
+      scheduleData.sort((groupA, groupB) => {
+          // 获取组 A 中最早的任务开始时间
+          const minA = groupA.tasks && groupA.tasks.length > 0 
+              ? Math.min(...groupA.tasks.map(t => toUtcMs(t.start))) 
+              : Infinity; // 如果没有任务，排到最后
+
+          // 获取组 B 中最早的任务开始时间
+          const minB = groupB.tasks && groupB.tasks.length > 0 
+              ? Math.min(...groupB.tasks.map(t => toUtcMs(t.start))) 
+              : Infinity;
+
+          return minA - minB; // 升序排列
+      });
+
+      const seriesData = [];
+      const categories = [];
+      const plotBands = [];
+      let yIndex = 0;
+      let colorIdx = 0;
+
+      scheduleData.forEach((group, gIdx) => {
+        // [保留] 2. 内部排序：对 Group 内的 Task 进行排序
+        const tasks = group.tasks.sort((a,b) => toUtcMs(a.start) - toUtcMs(b.start));
+        
+        const lanes = [];
+        
+        tasks.forEach(task => {
+          const start = toUtcMs(task.start); 
+          const end = toUtcMs(task.end);
+          let placed = false;
+          
+          for(let lane of lanes) {
+            if(start >= lane[lane.length-1].end) { 
+              lane.push({ ...task, start, end });
+              placed = true;
+              break;
+            }
+          }
+          if(!placed) lanes.push([{ ...task, start, end }]);
+        });
+
+        const startY = yIndex;
+        lanes.forEach((lane, lIdx) => {
+          categories.push(lIdx === 0 ? group.resource : '');
+          lane.forEach(t => {
+            seriesData.push({
+              id: `${group.resource}_${t.label}_${Math.random()}`,
+              name: t.label,
+              start: t.start,
+              end: t.end,
+              y: yIndex,
+              color: colors[colorIdx++ % colors.length]
+            });
+          });
+          yIndex++;
+        });
+
+        plotBands.push({
+          from: startY - 0.5,
+          to: yIndex - 0.5,
+          color: gIdx % 2 === 0 ? 'rgba(250,250,250,0.9)' : 'rgba(245,245,255,0.95)'
         });
       });
-      yIndex++;
-    });
 
-    plotBands.push({
-      from: startY - 0.5,
-      to: yIndex - 0.5,
-      color: gIdx % 2 === 0 ? 'rgba(250,250,250,0.9)' : 'rgba(245,245,255,0.95)'
-    });
-  });
-
-  // --- 2. 动态构建标线 (Plot Lines) ---
-  const finalPlotLines = [];
-
-  // (A) 添加 "今天" 的标线 (固定存在)
-  finalPlotLines.push({
-    value: nowMs,
-    color: '#FF3B30',
-    width: 2,
-    dashStyle: 'ShortDash',
-    zIndex: 3,
-    label: { rotation: 0, x: 9, y: -4, text: '️🔻', align: 'right', style: { color: '#FF3B30' } }
-  });
-
-  // (B) 添加来自 update.js 的特殊日期标线
-  if (typeof specialDates !== 'undefined' && Array.isArray(specialDates)) {
-    specialDates.forEach(item => {
+      // Plot Lines
+      const finalPlotLines = [];
       finalPlotLines.push({
-        value: toUtcMs(item.date), // 使用配置中的日期
-        color: item.color || '#30C2FF', // 默认蓝色
+        value: nowMs,
+        color: '#FF3B30',
         width: 2,
         dashStyle: 'ShortDash',
-        zIndex: 2,
-        label: { 
-          rotation: 0, 
-          x: 9, 
-          y: -4, 
-          text: item.label, // 使用配置中的图标/文字
-          align: 'right',
-          style: { color: item.color || '#30C2FF' } // 文字颜色同线条颜色
-        }
+        zIndex: 3,
+        label: { rotation: 0, x: 9, y: -4, text: '️🔻', align: 'right', style: { color: '#FF3B30' } }
       });
-    });
+
+      // 寻找最早的特殊日期
+      let minSpecialDateMs = null; 
+
+      if (specialDatesData && Array.isArray(specialDatesData)) {
+        specialDatesData.forEach(item => {
+          const sDateMs = toUtcMs(item.date);
+          if (minSpecialDateMs === null || sDateMs < minSpecialDateMs) {
+              minSpecialDateMs = sDateMs;
+          }
+          finalPlotLines.push({
+            value: sDateMs,
+            color: item.color || '#30C2FF',
+            width: 2,
+            dashStyle: 'ShortDash',
+            zIndex: 2,
+            label: { 
+              rotation: 0, x: 9, y: -4, 
+              text: item.label, 
+              align: 'right',
+              style: { color: item.color || '#30C2FF' } 
+            }
+          });
+        });
+      }
+
+      // 计算 X 轴起止时间
+      const minTaskStartMs = seriesData.length > 0 ? Math.min(...seriesData.map(d => d.start)) : Date.now();
+      
+      let absoluteMinMs = minTaskStartMs;
+      if (minSpecialDateMs !== null && minSpecialDateMs < minTaskStartMs) {
+          absoluteMinMs = minSpecialDateMs;
+      }
+
+      // 向前预留 1 天
+      const xAxisMin = absoluteMinMs - (1 * 24 * 3600 * 1000);
+
+      const maxEndMs = seriesData.length > 0 ? Math.max(...seriesData.map(d => d.end)) : (nowMs + 86400000);
+
+      const container = document.getElementById(containerId);
+      const screenWidth = window.innerWidth;
+      const isDesktop = screenWidth >= 1000;
+
+      if (isDesktop) {
+          container.style.width = '100%'; 
+      } else {
+          const totalDays = Math.ceil((maxEndMs - xAxisMin) / (24 * 3600 * 1000));
+          const pxPerDay = 25; 
+          const wrapperWidth = container.parentElement.clientWidth || screenWidth;
+          const finalWidth = Math.max(wrapperWidth, totalDays * pxPerDay);
+          container.style.width = `${finalWidth}px`; 
+      }
+
+      Highcharts.ganttChart(containerId, {
+        chart: { 
+          height: Math.max(200, categories.length * 30 + 50), 
+          style: { fontFamily: 'inherit' } 
+        },
+        title: { text: undefined },
+        xAxis: [{
+          grid: { enabled: true },
+          tickInterval: 24 * 3600 * 1000,
+          labels: { format: '{value:%d}', style: { fontSize: '11px' } },
+          min: xAxisMin,
+          max: maxEndMs,
+          plotLines: finalPlotLines 
+        }],
+        yAxis: { 
+          categories, 
+          reversed: true, 
+          grid: { enabled: true }, 
+          labels: { enabled: false }, 
+          plotBands 
+        },
+        series: [{ 
+          name: 'Tasks', 
+          data: seriesData, 
+          dataLabels: { 
+            enabled: true, 
+            format: '{point.name}', 
+            style: { 
+                color: 'white', 
+                textOutline: '2px contrast', 
+                fontWeight: 'normal', 
+                fontSize: '11px',
+                whiteSpace: isDesktop ? 'normal' : 'nowrap' 
+            } 
+          },
+          borderWidth: 0
+        }],
+        tooltip: { enabled: false },
+        credits: { enabled: false }
+      });
+
+      if (!isDesktop) {
+          setTimeout(() => {
+              const chartDiv = container.parentElement;
+              let targetMs = nowMs;
+              if (targetMs < xAxisMin) targetMs = xAxisMin; 
+              if (targetMs > maxEndMs) targetMs = maxEndMs;
+
+              const totalMs = maxEndMs - xAxisMin;
+              const percent = (targetMs - xAxisMin) / totalMs;
+              const currentWidth = parseInt(container.style.width); 
+              const wrapperW = chartDiv.clientWidth;
+              const scrollPos = (percent * currentWidth) - (wrapperW / 2);
+              if(chartDiv && scrollPos > 0) chartDiv.scrollLeft = scrollPos;
+          }, 500);
+      }
+      
+      return maxEndMs; 
   }
 
-  const minStartMs = seriesData.length > 0 ? Math.min(...seriesData.map(d => d.start)) : Date.now();
-  const xAxisMin = minStartMs - (24*3600*1000);
-
-// --- 3. 生成图表 (响应式宽度逻辑) ---
   document.addEventListener('DOMContentLoaded', () => {
     
-    // 获取容器和当前屏幕宽度
-    const container = document.getElementById('container');
-    const screenWidth = window.innerWidth;
-    const isDesktop = screenWidth >= 1000; // ⚠️ 判断是否为大屏
-
-    // 计算时间跨度（用于移动端计算宽度，或大屏确定X轴范围）
-    const maxEndMs = seriesData.length > 0 ? Math.max(...seriesData.map(d => d.end)) : (nowMs + 86400000);
+    // Update 1
+    const hasSch1 = typeof schedules !== 'undefined' && schedules.length > 0;
+    const sDates1 = typeof specialDates !== 'undefined' ? specialDates : [];
     
-    let finalWidth;
+    // Update 2
+    const hasSch2 = typeof schedules2 !== 'undefined' && schedules2.length > 0;
+    const sDates2 = typeof specialDates2 !== 'undefined' ? specialDates2 : [];
 
-    if (isDesktop) {
-        // 🟢 大屏模式：宽度自适应，不产生滚动条
-        container.style.width = '100%'; 
-    } else {
-        // 🔵 移动端模式：根据天数计算宽度，强制横向滚动
-        const totalDays = Math.ceil((maxEndMs - xAxisMin) / (24 * 3600 * 1000));
-        const pxPerDay = 25; // 每天 50px
-        const wrapperWidth = document.querySelector('.chart-wrapper').clientWidth || screenWidth;
-        finalWidth = Math.max(wrapperWidth, totalDays * pxPerDay);
-        
-        container.style.width = `${finalWidth}px`; // 强制设置像素宽度
+    const now = Date.now();
+    let showChart1 = false;
+    let showChart2 = false;
+
+    // 逻辑：检查 Chart 1 是否还在进行中
+    if (hasSch1) {
+       let maxEnd1 = 0;
+       schedules.forEach(g => g.tasks.forEach(t => {
+           // 使用同样的 23点 逻辑计算结束时间
+           const parts = t.end.split('-').map(Number);
+           const endTs = Date.UTC(parts[0], parts[1]-1, parts[2], 23);
+           if(endTs > maxEnd1) maxEnd1 = endTs;
+       }));
+       
+       // 如果今天时间 <= (Chart 1 结束时间 + 1天缓冲)，则显示 Chart 1
+       if (now <= (maxEnd1 + 86400000)) {
+           showChart1 = true;
+       }
     }
 
-    // Highcharts 初始化
-    Highcharts.ganttChart('container', {
-      chart: { 
-        height: Math.max(300, categories.length * 30 + 60), 
-        style: { fontFamily: 'inherit' } 
-      },
-      title: { text: undefined },
-      xAxis: [{
-        grid: { enabled: true },
-        tickInterval: 24 * 3600 * 1000,
-        labels: { format: '{value:%d}', style: { fontSize: '11px' } },
-        min: xAxisMin,
-        max: maxEndMs,
-        plotLines: finalPlotLines 
-      }],
-      yAxis: { 
-        categories, 
-        reversed: true, 
-        grid: { enabled: true }, 
-        labels: { enabled: false }, 
-        plotBands 
-      },
-      series: [{ 
-        name: 'Tasks', 
-        data: seriesData, 
-        dataLabels: { 
-          enabled: true, 
-          format: '{point.name}', 
-          style: { 
-              color: 'white', 
-              textOutline: '2px contrast', 
-              fontWeight: 'normal', 
-              fontSize: '11px',
-              // 大屏允许换行以显示更多信息，小屏强制不换行
-              whiteSpace: isDesktop ? 'normal' : 'nowrap' 
-          } 
-        },
-        borderWidth: 0
-      }],
-      tooltip: { 
-	  //xDateFormat: '%Y-%m-%d %H:%M' 
-	  enabled: false 
-	  },
-      credits: { enabled: false }
-    });
-    
-    // ⚠️ 仅在小屏幕（有滚动条时）自动滚动到今天
-    if (!isDesktop) {
-        setTimeout(() => {
-            const chartDiv = document.querySelector('.chart-wrapper');
-            const todayLine = nowMs;
-            const totalMs = maxEndMs - xAxisMin;
-            const percent = (todayLine - xAxisMin) / totalMs;
-            
-            // 重新获取一下设置后的宽度
-            const currentWidth = parseInt(container.style.width); 
-            const wrapperW = chartDiv.clientWidth;
+    // Chart 2 逻辑
+    if (showChart1) {
+        if (hasSch2) showChart2 = true;
+    } else {
+        // 如果 Chart 1 已经过期隐藏，强制显示 Chart 2
+        if (hasSch2) showChart2 = true;
+    }
 
-            const scrollPos = (percent * currentWidth) - (wrapperW / 2);
-            
-            if(chartDiv && scrollPos > 0) {
-                chartDiv.scrollLeft = scrollPos;
-            }
-        }, 500);
+    if (showChart1 && hasSch1) {
+        document.getElementById('chartWrapper1').style.display = 'block';
+        renderGanttChart('container1', schedules, sDates1);
+    }
+
+    if (showChart2 && hasSch2) {
+        document.getElementById('chartWrapper2').style.display = 'block';
+        renderGanttChart('container2', schedules2, sDates2);
+    }
+    
+    if (!hasSch1 && !hasSch2) {
+        document.getElementById('chartWrapper1').innerHTML = '<p style="text-align:center;padding:20px;">No schedule data found.</p>';
+        document.getElementById('chartWrapper1').style.display = 'block';
     }
 
   });
 })();
 
 // ==========================================
-// 3. TRANSLATOR LOGIC (Optimized)
+// 3. TRANSLATOR LOGIC
 // ==========================================
-
 let taskDatabase = [];
 let currentTableData = [];
 let sortDirection = {};
 
-// 1. Data Parsing
 function initDatabase() {
   try {
-    // 检查外部文件是否加载成功
     if (typeof rawDataSource === 'undefined') {
-      console.error("rawDataSource is undefined. Check if data.js is loaded.");
+      console.error("rawDataSource is undefined.");
       document.querySelector('#tableBody').innerHTML = '<tr><td colspan="5" style="color:red;text-align:center;">错误：未找到数据源 (data.js)</td></tr>';
       return;
     }
-
-    let clean = rawDataSource.replace(/--\[=\[[\s\S]*?--\]=\]/g, ''); // Remove block comments
-    clean = clean.replace(/--.*/g, ''); // Remove line comments
-    clean = clean.replace(/^return\s*\{/, '').replace(/\}\s*$/, '').trim();
-    
-    // Split by rows ensuring we catch the structure {"..."}
+    let clean = rawDataSource.replace(/--\[=\[[\s\S]*?--\]=\]/g, '').replace(/--.*/g, '').replace(/^return\s*\{/, '').replace(/\}\s*$/, '').trim();
     const rowMatches = clean.match(/\{[^}]+\}/g);
-    
     if (rowMatches) {
         taskDatabase = rowMatches.map(rowStr => {
-            // Remove outer braces
             const content = rowStr.slice(1, -1);
-            // Split by comma, handling quotes roughly
             const parts = [];
             let current = '';
             let inQuote = false;
             for(let char of content) {
-                if(char === '"') { inQuote = !inQuote; continue; } // Skip quotes
-                if(char === ',' && !inQuote) {
-                    parts.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
+                if(char === '"') { inQuote = !inQuote; continue; }
+                if(char === ',' && !inQuote) { parts.push(current.trim()); current = ''; } 
+                else { current += char; }
             }
             parts.push(current.trim());
             return parts;
@@ -1036,49 +667,14 @@ function initDatabase() {
     }
   } catch (e) {
     console.error("Data parse error", e);
-    document.querySelector('#tableBody').innerHTML = '<tr><td colspan="5">数据解析错误，请检查控制台</td></tr>';
   }
 }
 
-// 2. Scroll Handling (Prevent Swiper interference)
-function setupScrollHandling() {
-    const stopPropagation = (e) => e.stopPropagation();
-    
-    // Elements that need independent scrolling
-    const scrollables = [
-        document.getElementById('inputData'),
-        document.querySelector('.table-wrapper')
-    ];
-
-    scrollables.forEach(el => {
-        if(!el) return;
-        // Desktop
-        el.addEventListener('wheel', (e) => {
-             // Stop bubble so Swiper doesn't move
-             e.stopPropagation(); 
-        }, { passive: false });
-        
-        // Touch (Mobile)
-        el.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-        }, { passive: true });
-        
-        el.addEventListener('touchmove', (e) => {
-            e.stopPropagation();
-            // Optional: logic to prevent body scroll at boundaries could go here
-        }, { passive: true });
-    });
-}
-
-// 3. Search Logic (Enhanced with Levenshtein Distance for typos)
 function findTask(line) {
     const input = line.trim();
     if (!input) return null;
-
-    // Split "Character - Task"
     const separators = [' - ', ' – ', ' — ', '-', '–'];
     let charName = '', taskName = input;
-    
     for (const sep of separators) {
         if (input.includes(sep)) {
             const parts = input.split(sep);
@@ -1087,131 +683,72 @@ function findTask(line) {
             break;
         }
     }
-
-    // Normalize
     const normTask = taskName.toLowerCase().replace(/['"’]/g, "");
     const normChar = charName.toLowerCase().replace(/['"’]/g, "");
     
-    // --- Helper 1: Bidirectional Keyword Match ---
     const isKeywordMatch = (inputStr, targetStr) => {
         const getWords = (s) => s.split(/\s+/).filter(w => w.length > 0);
         const inputWords = getWords(inputStr);
         const targetWords = getWords(targetStr);
         if (inputWords.length === 0 || targetWords.length === 0) return false;
-        
-        // Input is subset of Target OR Target is subset of Input
-        const inputIsSubset = inputWords.every(word => targetStr.includes(word));
-        const targetIsSubset = targetWords.every(word => inputStr.includes(word));
-        return inputIsSubset || targetIsSubset;
+        return inputWords.every(word => targetStr.includes(word)) || targetWords.every(word => inputStr.includes(word));
     };
 
-    // --- Helper 2: Levenshtein Distance (For Typos like "Faily" -> "Fairy") ---
     const getEditDistance = (a, b) => {
         if(a.length === 0) return b.length;
         if(b.length === 0) return a.length;
-        
         const matrix = [];
         for(let i = 0; i <= b.length; i++) matrix[i] = [i];
         for(let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
         for(let i = 1; i <= b.length; i++){
             for(let j = 1; j <= a.length; j++){
-                if(b.charAt(i-1) === a.charAt(j-1)){
-                    matrix[i][j] = matrix[i-1][j-1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i-1][j-1] + 1, // substitution
-                        Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1) // insertion/deletion
-                    );
-                }
+                if(b.charAt(i-1) === a.charAt(j-1)) matrix[i][j] = matrix[i-1][j-1];
+                else matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
             }
         }
         return matrix[b.length][a.length];
     };
 
-    // --- Helper 3: Typo Match Logic ---
     const isTypoMatch = (inputStr, targetStr) => {
-        // Optimization: Don't check if length difference is too big
         if (Math.abs(inputStr.length - targetStr.length) > 3) return false;
-        
         const dist = getEditDistance(inputStr, targetStr);
         const maxLength = Math.max(inputStr.length, targetStr.length);
-        
-        // Similarity Threshold: > 80% similarity
-        // e.g. "Faily" vs "Fairy" (Length 5, Dist 1) -> 80% -> Match
-        // e.g. "Read Faily Tales" (Length 16, Dist 1) -> 93% -> Match
         return (1 - dist / maxLength) >= 0.8;
     };
 
-    // ====== SEARCH EXECUTION ======
-
-    // Strategy 1: Search within specific Character
     if (charName) {
         const charTasks = taskDatabase.filter(row => row[0].toLowerCase() === normChar);
-        
         if (charTasks.length > 0) {
-            // 1.1 Exact
             const exact = charTasks.find(row => row[4].toLowerCase().replace(/['"’]/g, "") === normTask);
             if (exact) return { data: exact, type: 'Exact' };
-            
-            // 1.2 Fuzzy Substring
-            const fuzzy = charTasks.find(row => {
-                const rowTask = row[4].toLowerCase().replace(/['"’]/g, "");
-                return rowTask.includes(normTask) || normTask.includes(rowTask);
-            });
+            const fuzzy = charTasks.find(row => row[4].toLowerCase().replace(/['"’]/g, "").includes(normTask) || normTask.includes(row[4].toLowerCase().replace(/['"’]/g, "")));
             if (fuzzy) return { data: fuzzy, type: 'Fuzzy' };
-
-            // 1.3 Keyword Subset
-            const keywordMatch = charTasks.find(row => {
-                const rowTask = row[4].toLowerCase().replace(/['"’]/g, "");
-                return isKeywordMatch(normTask, rowTask);
-            });
+            const keywordMatch = charTasks.find(row => isKeywordMatch(normTask, row[4].toLowerCase().replace(/['"’]/g, "")));
             if (keywordMatch) return { data: keywordMatch, type: 'Keyword' };
-
-            // 1.4 Typo/Levenshtein Match (New!)
-            const typoMatch = charTasks.find(row => {
-                const rowTask = row[4].toLowerCase().replace(/['"’]/g, "");
-                return isTypoMatch(normTask, rowTask);
-            });
-            if (typoMatch) return { data: typoMatch, type: 'Typo Match' };
+            const typoMatch = charTasks.find(row => isTypoMatch(normTask, row[4].toLowerCase().replace(/['"’]/g, "")));
+            if (typoMatch) return { data: typoMatch, type: 'Typo' };
         }
     }
 
-    // Strategy 2: Global Search
-    // 2.1 Global Exact
     const globalMatch = taskDatabase.find(row => row[4].toLowerCase().replace(/['"’]/g, "") === normTask);
     if (globalMatch) return { data: globalMatch, type: 'Global Exact' };
 
-    // 2.2 Global Keyword (Length > 3)
     if (normTask.length > 3) { 
-        const globalKeyword = taskDatabase.find(row => {
-            const rowTask = row[4].toLowerCase().replace(/['"’]/g, "");
-            return isKeywordMatch(normTask, rowTask);
-        });
+        const globalKeyword = taskDatabase.find(row => isKeywordMatch(normTask, row[4].toLowerCase().replace(/['"’]/g, "")));
         if (globalKeyword) return { data: globalKeyword, type: 'Global Keyword' };
-        
-        // 2.3 Global Typo Match (Only for longer phrases to avoid false positives)
-        // e.g. Don't match "Hat" to "Cat" globally, but "Magic Kindom" -> "Magic Kingdom" is ok
         if (normTask.length > 6) {
-            const globalTypo = taskDatabase.find(row => {
-                const rowTask = row[4].toLowerCase().replace(/['"’]/g, "");
-                return isTypoMatch(normTask, rowTask);
-            });
+            const globalTypo = taskDatabase.find(row => isTypoMatch(normTask, row[4].toLowerCase().replace(/['"’]/g, "")));
             if (globalTypo) return { data: globalTypo, type: 'Global Typo' };
         }
     }
-
     return null;
 }
 
-// 4. Main Function
 function translateTasks() {
     const input = document.getElementById('inputData').value;
     const lines = input.split('\n').filter(l => l.trim());
-    
     currentTableData = [];
     let found = 0, notFound = 0;
-
     if (taskDatabase.length === 0) initDatabase();
 
     lines.forEach(line => {
@@ -1219,43 +756,26 @@ function translateTasks() {
         if (res) {
             found++;
             const d = res.data;
-            // Format: Name+Level
             let charStr = `${d[0]} (Lv.${d[1]})`;
             if (d[2]) charStr += ` + ${d[2]} (Lv.${d[3]})`;
-            
-            // Format: Extra (Building, Tokens etc)
             let extras = [];
-            if(d[7] && d[7] !== "") extras.push(`Drop: ${d[7]}`); // Happy/Token
+            if(d[7] && d[7] !== "") extras.push(`Drop: ${d[7]}`); 
             if(d[8] && !d[8].includes("Coming Soon")) extras.push(d[8]);
 
             currentTableData.push({
-                char: charStr,
-                task: d[4],
-                time: d[5],
-                timeVal: parseDuration(d[5]), // For sorting
-                build: d[6],
-                extra: extras.join(', ')
+                char: charStr, task: d[4], time: d[5], timeVal: parseDuration(d[5]), build: d[6], extra: extras.join(', ')
             });
         } else {
             notFound++;
             currentTableData.push({
-                char: line.split(/[-–]/)[0].trim() || 'Unknown',
-                task: line,
-                time: '-',
-                timeVal: 0,
-                build: '-',
-                extra: 'Not Found'
+                char: line.split(/[-–]/)[0].trim() || 'Unknown', task: line, time: '-', timeVal: 0, build: '-', extra: 'Not Found'
             });
         }
     });
-
     renderTable();
-	document.getElementById('tableStats').innerHTML = 
-  `<span style="margin-right:15px">✅ Found: <b>${found}</b></span> 
-   <span style="color:#e53e3e">❌ Missing: <b>${notFound}</b></span>`;
+	document.getElementById('tableStats').innerHTML = `<span style="margin-right:15px">✅ Found: <b>${found}</b></span><span style="color:#e53e3e">❌ Missing: <b>${notFound}</b></span>`;
 }
 
-// Helper: Parse "60m", "12h", "6m" into minutes for sorting
 function parseDuration(str) {
     if(!str || str === '-') return 0;
     str = str.toLowerCase();
@@ -1271,59 +791,33 @@ function renderTable() {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">无数据</td></tr>';
         return;
     }
-    
     tbody.innerHTML = currentTableData.map(row => `
-        <tr>
-            <td title="${row.char}">${row.char}</td>
-            <td title="${row.task}">${row.task}</td>
-            <td>${row.time}</td>
-            <td title="${row.build}">${row.build}</td>
-            <td title="${row.extra}">${row.extra}</td>
-        </tr>
+        <tr><td title="${row.char}">${row.char}</td><td title="${row.task}">${row.task}</td><td>${row.time}</td><td title="${row.build}">${row.build}</td><td title="${row.extra}">${row.extra}</td></tr>
     `).join('');
 }
 
-// 5. Sorting
 function sortTable(colIndex) {
     const keys = ['char', 'task', 'timeVal', 'build', 'extra'];
     const key = keys[colIndex];
-    
-    // Toggle direction
     sortDirection[colIndex] = !sortDirection[colIndex];
     const isAsc = sortDirection[colIndex];
-
-    // Update Header Arrows
     document.querySelectorAll('th').forEach((th, idx) => {
         th.classList.remove('asc', 'desc');
         if(idx === colIndex) th.classList.add(isAsc ? 'asc' : 'desc');
     });
-
     currentTableData.sort((a, b) => {
-        let valA = a[key];
-        let valB = b[key];
-        
-        // String comparison
+        let valA = a[key]; let valB = b[key];
         if (typeof valA === 'string') valA = valA.toLowerCase();
         if (typeof valB === 'string') valB = valB.toLowerCase();
-
         if (valA < valB) return isAsc ? -1 : 1;
         if (valA > valB) return isAsc ? 1 : -1;
         return 0;
     });
-
     renderTable();
 }
 
-// Init logic on load
-document.addEventListener('DOMContentLoaded', () => {
-    initDatabase();
-    setupScrollHandling();
-});
-
-// Export for button access
 window.translateTasks = translateTasks;
 window.sortTable = sortTable;
-
 </script>
 </body>
 </html>
