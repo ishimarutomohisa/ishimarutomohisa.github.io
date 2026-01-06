@@ -178,6 +178,13 @@
 
   .translator-content { display: flex; gap: 20px; flex-wrap: wrap; width: 100%; }
   .translator-box { flex: 1; min-width: 300px; display: flex; flex-direction: column; }
+  /* 调整左侧输入框宽度，给输入区更多空间 */
+.translator-box:first-child {
+    flex: 1.2; /* 输入框占 1.2 份 */
+}
+.translator-box:last-child {
+    flex: 2;   /* 结果表格占 2 份，确保内容横向展开 */
+}
   .translator-box label { font-weight: bold; margin-bottom: 8px; color: #333; font-size: 16px; }
 
   .translator-box textarea {
@@ -199,7 +206,7 @@
     width: 100%;
     height: auto;
     min-height: 400px; 
-    max-height: 600px;
+	max-height: none;  /* 允许无限向下延伸，不产生垂直滚动条 */
     overflow: auto;
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -484,7 +491,11 @@ document.addEventListener('DOMContentLoaded', function() {
               rotation: 0, x: 9, y: -4, 
               text: item.label, 
               align: 'right',
-              style: { color: item.color || '#30C2FF' } 
+			  allowOverlap: true, // [新增] 强制允许重叠
+              style: { 
+				color: item.color || '#30C2FF',
+				opacity: 1 // [新增] 强制透明度为 1
+			  } 
             }
           });
         });
@@ -577,60 +588,93 @@ document.addEventListener('DOMContentLoaded', function() {
       return maxEndMs; 
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    
-    // Update 1
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 获取基础数据
     const hasSch1 = typeof schedules !== 'undefined' && schedules.length > 0;
-    const sDates1 = typeof specialDates !== 'undefined' ? specialDates : [];
-    
-    // Update 2
     const hasSch2 = typeof schedules2 !== 'undefined' && schedules2.length > 0;
+    const sDates1 = typeof specialDates !== 'undefined' ? specialDates : [];
     const sDates2 = typeof specialDates2 !== 'undefined' ? specialDates2 : [];
+    
+    // 获取今天凌晨的时间戳，用于过期判断
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTs = today.getTime();
 
-    const now = Date.now();
-    let showChart1 = false;
-    let showChart2 = false;
+    // 2. 辅助函数：获取时间范围及判断是否过期
+    function getSchInfo(schedule) {
+        if (!schedule || schedule.length === 0) return { minStart: Infinity, maxEnd: 0, isExpired: true };
+        
+        let minStart = Infinity;
+        let maxEnd = 0;
 
-    // 逻辑：检查 Chart 1 是否还在进行中
+        schedule.forEach(group => {
+            group.tasks.forEach(t => {
+                const sParts = t.start.split('-').map(Number);
+                const eParts = t.end.split('-').map(Number);
+                // 使用 UTC 或当地时间保持一致，这里建议与 renderGanttChart 保持一致
+                const sTs = Date.UTC(sParts[0], sParts[1] - 1, sParts[2], 23);
+                const eTs = Date.UTC(eParts[0], eParts[1] - 1, eParts[2], 23);
+
+                if (sTs < minStart) minStart = sTs;
+                if (eTs > maxEnd) maxEnd = eTs;
+            });
+        });
+
+        // 如果该图表最晚的任务结束时间比今天还早，判定为过期
+        const isExpired = maxEnd < Date.now(); 
+
+        return { minStart, maxEnd, isExpired };
+    }
+
+    // 3. 决定显示顺序并过滤过期图表
+    let displayList = [];
+    
     if (hasSch1) {
-       let maxEnd1 = 0;
-       schedules.forEach(g => g.tasks.forEach(t => {
-           // 使用同样的 23点 逻辑计算结束时间
-           const parts = t.end.split('-').map(Number);
-           const endTs = Date.UTC(parts[0], parts[1]-1, parts[2], 23);
-           if(endTs > maxEnd1) maxEnd1 = endTs;
-       }));
-       
-       // 如果今天时间 <= (Chart 1 结束时间 + 1天缓冲)，则显示 Chart 1
-       if (now <= (maxEnd1 + 86400000)) {
-           showChart1 = true;
-       }
-    }
-
-    // Chart 2 逻辑
-    if (showChart1) {
-        if (hasSch2) showChart2 = true;
-    } else {
-        // 如果 Chart 1 已经过期隐藏，强制显示 Chart 2
-        if (hasSch2) showChart2 = true;
-    }
-
-    if (showChart1 && hasSch1) {
-        document.getElementById('chartWrapper1').style.display = 'block';
-        renderGanttChart('container1', schedules, sDates1);
-    }
-
-    if (showChart2 && hasSch2) {
-        document.getElementById('chartWrapper2').style.display = 'block';
-        renderGanttChart('container2', schedules2, sDates2);
+        const info1 = getSchInfo(schedules);
+        // 只有没过期才加入显示列表
+        if (!info1.isExpired) {
+            displayList.push({ id: 1, sch: schedules, dates: sDates1, minStart: info1.minStart });
+        }
     }
     
-    if (!hasSch1 && !hasSch2) {
-        document.getElementById('chartWrapper1').innerHTML = '<p style="text-align:center;padding:20px;">No schedule data found.</p>';
-        document.getElementById('chartWrapper1').style.display = 'block';
+    if (hasSch2) {
+        const info2 = getSchInfo(schedules2);
+        if (!info2.isExpired) {
+            displayList.push({ id: 2, sch: schedules2, dates: sDates2, minStart: info2.minStart });
+        }
     }
 
-  });
+    // 4. 按时间先后排序
+    displayList.sort((a, b) => a.minStart - b.minStart);
+
+    // 5. 执行渲染
+    const mainContainer = document.getElementById('chartWrapper1').parentElement; 
+    
+    // 先全部隐藏，后面按需开启
+    document.getElementById('chartWrapper1').style.display = 'none';
+    document.getElementById('chartWrapper2').style.display = 'none';
+
+    displayList.forEach((item, index) => {
+        const wrapperId = `chartWrapper${item.id}`;
+        const containerId = `container${item.id}`;
+        const wrapperEl = document.getElementById(wrapperId);
+        
+        if (wrapperEl) {
+            wrapperEl.style.display = 'block';
+            mainContainer.appendChild(wrapperEl); 
+
+            const titleEl = wrapperEl.querySelector('.chart-title');
+            if (displayList.length === 1) {
+                titleEl.style.display = 'none'; // 只有一个图时隐藏标题
+            } else {
+                titleEl.style.display = 'block';
+                titleEl.innerText = index === 0 ? "Current Schedule" : "Upcoming Schedule";
+            }
+
+            renderGanttChart(containerId, item.sch, item.dates);
+        }
+    });
+});
 })();
 
 // ==========================================
@@ -675,17 +719,29 @@ function findTask(line) {
     if (!input) return null;
     const separators = [' - ', ' – ', ' — ', '-', '–'];
     let charName = '', taskName = input;
+    
     for (const sep of separators) {
         if (input.includes(sep)) {
-            const parts = input.split(sep);
-            charName = parts[0].trim();
-            taskName = parts.slice(1).join(sep).trim();
+            let parts = input.split(sep);
+            let p1 = parts[0].trim();
+            let p2 = parts.slice(1).join(sep).trim();
+            
+            // --- 核心修改：如果是 "任务 - 角色(等级)" 格式 ---
+            if (p2.includes('(') && p2.includes(')')) {
+                charName = p2.split('(')[0].trim(); // 提取括号前的名字
+                taskName = p1;
+            } else {
+                charName = p1;
+                taskName = p2;
+            }
             break;
         }
     }
+
     const normTask = taskName.toLowerCase().replace(/['"’]/g, "");
     const normChar = charName.toLowerCase().replace(/['"’]/g, "");
     
+    // --- 以下逻辑保持完全不变 ---
     const isKeywordMatch = (inputStr, targetStr) => {
         const getWords = (s) => s.split(/\s+/).filter(w => w.length > 0);
         const inputWords = getWords(inputStr);
