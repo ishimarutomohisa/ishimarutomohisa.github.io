@@ -2,7 +2,7 @@
 
 // 1. 版本配置
 var CONFIG = {
-  version: '103',
+  version: '104',
   // 👇 新增 note 字段：如果有内容则显示，为空则不显示
   note: `
 `
@@ -17,19 +17,17 @@ var specialDates = [
 
 // 3. 甘特图排期数据
 var schedules = [
-  { resource: '', tasks: [{start: '2026-02-06', end: '2026-02-21', label: 'Story Pass'}] },
-  { resource: '', tasks: [{start: '2026-02-05', end: '2026-02-11', label: 'Cascading Tapper Event'}] },
-  { resource: '', tasks: [{start: '2026-03-05', end: '2026-03-08', label: 'Dandelion Fluff*'}] },
-  { resource: '', tasks: [{start: '2026-03-01', end: '2026-03-05', label: 'Cursed Crab'}] },
-  { resource: '', tasks: [{start: '2026-03-02', end: '2026-03-07', label: 'Dreamland Quest'}] },
+  { resource: '', tasks: [{start: '2026-04-02', end: '2026-04-06', label: 'Vine Cage'}] },
+  { resource: '', tasks: [{start: '2026-04-03', end: '2026-04-06', label: 'Turtle*'}] },
   { resource: '', tasks: [
-      {start: '2026-02-12', end: '2026-02-27', label: 'Disney Fairies Mini Event'},
-      {start: '2026-02-12', end: '2026-02-14', label: 'Chapter 1'},
-      {start: '2026-02-14', end: '2026-02-21', label: 'Chapter 2'},
-      {start: '2026-02-21', end: '2026-02-27', label: 'Chapter 3'},
-      {start: '2026-02-13', end: '2026-02-16', label: 'Striking Gold'},
-      {start: '2026-02-18', end: '2026-02-21', label: 'Striking Gold'},
-      {start: '2026-02-23', end: '2026-02-26', label: 'Striking Gold'},
+      {start: '2026-03-12', end: '2026-04-02', label: 'Mickey & Friends – Mega Event'},
+      {start: '2026-03-12', end: '2026-03-15', label: 'Chapter 1'},
+      {start: '2026-03-15', end: '2026-03-21', label: 'Chapter 2'},
+      {start: '2026-03-21', end: '2026-03-28', label: 'Chapter 3'},
+      {start: '2026-03-28', end: '2026-04-02', label: 'Chapter 4'},
+      {start: '2026-03-15', end: '2026-03-18', label: 'Striking Gold'},
+      {start: '2026-03-22', end: '2026-03-25', label: 'Striking Gold'},
+      {start: '2026-03-29', end: '2026-04-01', label: 'Striking Gold'},
     ]
   }, 
 ];
@@ -53,4 +51,5 @@ var schedules2 = [
   { resource: '', tasks: [{start: '2026-01-27', end: '2026-02-01', label: 'Battle Bot'}] },
   { resource: '', tasks: [{start: '2026-01-25', end: '2026-01-30', label: 'Dreamland Quest'}] },
 ];
+
 
