@@ -2,7 +2,7 @@
 
 // 1. 版本配置
 var CONFIG = {
-  version: '104',
+  version: '105',
   // 👇 新增 note 字段：如果有内容则显示，为空则不显示
   note: `
 `
@@ -41,15 +41,14 @@ var specialDates2 = [
 // 3. 甘特图排期数据
 var schedules2 = [
   { resource: '', tasks: [
-      {start: '2026-01-08', end: '2026-01-23', label: 'Tower Event'},
-      {start: '2026-01-08', end: '2026-01-13', label: 'Chapter 1'},
-      {start: '2026-01-13', end: '2026-01-18', label: 'Chapter 2'},
-      {start: '2026-01-18', end: '2026-01-23', label: 'Chapter 3'},
+      {start: '2026-04-09', end: '2026-04-24', label: 'Tower Event'},
+      {start: '2026-04-09', end: '2026-04-14', label: 'Chapter 1'},
+      {start: '2026-04-14', end: '2026-04-19', label: 'Chapter 2'},
+      {start: '2026-04-19', end: '2026-04-24', label: 'Chapter 3'},
     ]
   }, 
-  { resource: '', tasks: [{start: '2026-01-30', end: '2026-02-02', label: 'Pegasus Cloud*'}] },
-  { resource: '', tasks: [{start: '2026-01-27', end: '2026-02-01', label: 'Battle Bot'}] },
-  { resource: '', tasks: [{start: '2026-01-25', end: '2026-01-30', label: 'Dreamland Quest'}] },
+  { resource: '', tasks: [{start: '2026-04-29', end: '2026-05-02', label: 'Koi Blimp*'}] },
+  { resource: '', tasks: [{start: '2026-04-26', end: '2026-05-03', label: 'Cookie Party'}] },
+  { resource: '', tasks: [{start: '2026-04-26', end: '2026-05-01', label: 'Honey Bee'}] },
+  { resource: '', tasks: [{start: '2026-04-27', end: '2026-05-02', label: 'Dreamland Quest'}] },
 ];
-
-
