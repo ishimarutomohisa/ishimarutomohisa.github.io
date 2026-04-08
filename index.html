@@ -120,6 +120,7 @@
   .btn-patch { background: linear-gradient(rgb(41, 210, 247) 6.16%, rgb(41, 143, 247) 95.06%); }
   .btn-wiki { background-color: #520044; }
   .btn-fb { background-color: #1877F2; }
+  .btn-tools { background-color: #2c3e50; } /* 或者使用 #009688 (青色) */
   .btn-discord { background-color: #5865F2; }
   .btn-github { background-color: #24292e; }
   .btn-reddit { background-color: #FF5700; }
@@ -265,6 +266,7 @@
             <div class="btn-group">
               <button id="btnPatch" class="social-btn btn-patch" title="Patch Note"><i class="fa-solid fa-file-lines"></i></button>
               <button id="btnWiki" class="social-btn btn-wiki" title="Wiki"><i class="fa-solid fa-book-open"></i></button>
+			  <button class="social-btn btn-tools" title="DMK Token Guide" onclick="window.open('https://dmk.dylauthi.fr/')"><i class="fa-solid fa-screwdriver-wrench"></i></button>
               <button class="social-btn btn-fb" title="Facebook" onclick="window.open('https://www.facebook.com/DisneyMagicKingdoms')"><i class="fa-brands fa-facebook-f"></i></button>
               <button class="social-btn btn-discord" title="Discord" onclick="window.open('https://discord.com/channels/981942496630304818/1288901443511910511')"><i class="fa-brands fa-discord"></i></button>
               <button class="social-btn btn-github" title="Github" onclick="window.open('https://github.com/ishimarutomohisa/ishimarutomohisa.github.io')"><i class="fa-brands fa-github"></i></button>
@@ -511,7 +513,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // 向前预留 1 天
       const xAxisMin = absoluteMinMs - (1 * 24 * 3600 * 1000);
 
-      const maxEndMs = seriesData.length > 0 ? Math.max(...seriesData.map(d => d.end)) : (nowMs + 86400000);
+      // 在原有基础上增加 2 天 (2 * 24 * 3600 * 1000 毫秒)
+		const maxEndMs = (seriesData.length > 0 ? Math.max(...seriesData.map(d => d.end)) : (nowMs + 86400000)) + (2 * 24 * 3600 * 1000);
 
       const container = document.getElementById(containerId);
       const screenWidth = window.innerWidth;
@@ -619,8 +622,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // 如果该图表最晚的任务结束时间比今天还早，判定为过期
-        const isExpired = maxEnd < Date.now(); 
+// 在判断过期时，也额外给数据宽限 2 天（172,800,000 毫秒）
+const isExpired = (maxEnd + 172800000) < Date.now();
 
         return { minStart, maxEnd, isExpired };
     }
@@ -876,4 +879,3 @@ window.sortTable = sortTable;
 </script>
 </body>
 </html>
-
