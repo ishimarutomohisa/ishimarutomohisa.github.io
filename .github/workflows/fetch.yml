@@ -1,0 +1,78 @@
+name: Fetch DMK Patchnote
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 抓主页，检查是否有新版本
+        id: check
+        run: |
+          mkdir -p data
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'
+
+          curl -sS -m 30 -A "$UA" \
+            'https://www.disney-magic-kingdoms.com/news' \
+            -o data/news.html
+
+          if ! grep -q 'patchnote_upd' data/news.html; then
+            echo "::error::主页抓取失败"
+            exit 1
+          fi
+
+          LATEST=$(grep -oE 'patchnote_upd[0-9]+' data/news.html \
+                   | grep -oE '[0-9]+' | sort -n | tail -1)
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "最新版本：Upd $LATEST"
+
+          if [ -f "data/patchnote_upd${LATEST}.html" ]; then
+            echo "need=no" >> $GITHUB_OUTPUT
+            echo "✅ Upd $LATEST 已存在，跳过"
+          else
+            echo "need=yes" >> $GITHUB_OUTPUT
+            echo "🆕 Upd $LATEST 是新版本"
+          fi
+
+      - name: 抓新补丁页
+        if: steps.check.outputs.need == 'yes'
+        run: |
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'
+          LATEST=${{ steps.check.outputs.latest }}
+          curl -sS -m 30 -A "$UA" \
+            "https://www.disney-magic-kingdoms.com/news/patchnote_upd${LATEST}" \
+            -o "data/patchnote_upd${LATEST}.html"
+
+          if [ ! -s "data/patchnote_upd${LATEST}.html" ]; then
+            echo "::error::补丁页为空"
+            exit 1
+          fi
+          ls -lh data/
+
+      - name: 清理旧补丁（保留最近 5 个）
+        run: |
+          cd data
+          ls -1 patchnote_upd*.html 2>/dev/null | sort -V | head -n -5 | while read f; do
+            git rm -q -f "$f" || rm -f "$f"
+          done
+          cd ..
+
+      - name: 提交
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "无变化，跳过"
+          else
+            git commit -m "auto: DMK Upd ${{ steps.check.outputs.latest }}"
+            git push
+          fi
