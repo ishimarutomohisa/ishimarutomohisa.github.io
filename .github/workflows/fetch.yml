@@ -2,7 +2,7 @@ name: Fetch DMK Patchnote
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 2 * * *'        # 每天 UTC 02:00 = 北京 10:00
   workflow_dispatch:
 
 permissions:
@@ -14,65 +14,91 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 抓主页，检查是否有新版本
-        id: check
+      # ① 抓主页到临时文件（不碰仓库，避免产生无意义 diff）
+      - name: 抓主页
         run: |
-          mkdir -p data
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'
-
           curl -sS -m 30 -A "$UA" \
             'https://www.disney-magic-kingdoms.com/news' \
-            -o data/news.html
+            -o /tmp/news.html
 
-          if ! grep -q 'patchnote_upd' data/news.html; then
-            echo "::error::主页抓取失败"
+          if ! grep -q 'patchnote_upd' /tmp/news.html; then
+            echo "::error::主页抓取失败，内容不含 patchnote_upd"
             exit 1
           fi
+          echo "主页抓取成功：$(wc -c < /tmp/news.html) 字节"
 
-          LATEST=$(grep -oE 'patchnote_upd[0-9]+' data/news.html \
+      # ② 核心：对比「线上最新」和「仓库已有」
+      - name: 对比版本号
+        id: diff
+        run: |
+          LATEST=$(grep -oE 'patchnote_upd[0-9]+' /tmp/news.html \
                    | grep -oE '[0-9]+' | sort -n | tail -1)
-          echo "latest=$LATEST" >> $GITHUB_OUTPUT
-          echo "最新版本：Upd $LATEST"
+          EXISTING=$(ls data/patchnote_upd*.html 2>/dev/null \
+                   | grep -oE '[0-9]+' | sort -n | tail -1)
+          EXISTING=${EXISTING:-0}
 
-          if [ -f "data/patchnote_upd${LATEST}.html" ]; then
-            echo "need=no" >> $GITHUB_OUTPUT
-            echo "✅ Upd $LATEST 已存在，跳过"
+          echo "latest=$LATEST"     >> $GITHUB_OUTPUT
+          echo "existing=$EXISTING" >> $GITHUB_OUTPUT
+
+          echo "线上最新：Upd $LATEST ｜ 仓库已有：Upd $EXISTING"
+
+          if [ "$LATEST" -gt "$EXISTING" ]; then
+            echo "changed=yes" >> $GITHUB_OUTPUT
+            echo "🆕 有新版本，准备抓取"
           else
-            echo "need=yes" >> $GITHUB_OUTPUT
-            echo "🆕 Upd $LATEST 是新版本"
+            echo "changed=no" >> $GITHUB_OUTPUT
+            echo "✅ 无新版本，本次不提交"
           fi
 
-      - name: 抓新补丁页
-        if: steps.check.outputs.need == 'yes'
+      # ③ 只有版本变化时，才抓补丁 + 更新 news.html
+      - name: 抓新补丁
+        if: steps.diff.outputs.changed == 'yes'
         run: |
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'
-          LATEST=${{ steps.check.outputs.latest }}
+          LATEST=${{ steps.diff.outputs.latest }}
+
+          mkdir -p data
+          cp /tmp/news.html data/news.html
+
           curl -sS -m 30 -A "$UA" \
             "https://www.disney-magic-kingdoms.com/news/patchnote_upd${LATEST}" \
             -o "data/patchnote_upd${LATEST}.html"
 
           if [ ! -s "data/patchnote_upd${LATEST}.html" ]; then
-            echo "::error::补丁页为空"
+            echo "::error::补丁页抓取为空"
             exit 1
           fi
+
+          echo "✅ 已保存："
           ls -lh data/
 
-      - name: 清理旧补丁（保留最近 5 个）
+      # ④ 清理旧补丁，只保留最近 5 个
+      - name: 清理旧补丁
+        if: steps.diff.outputs.changed == 'yes'
         run: |
           cd data
           ls -1 patchnote_upd*.html 2>/dev/null | sort -V | head -n -5 | while read f; do
-            git rm -q -f "$f" || rm -f "$f"
+            echo "删除 $f"
+            rm -f "$f"
           done
           cd ..
+          echo "当前保留："
+          ls -lh data/
 
+      # ⑤ 提交（-A 会记录删除）
       - name: 提交
+        if: steps.diff.outputs.changed == 'yes'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+
+          git add -A data/
+
           if git diff --cached --quiet; then
-            echo "无变化，跳过"
+            echo "无变化，跳过提交"
           else
-            git commit -m "auto: DMK Upd ${{ steps.check.outputs.latest }}"
+            git commit -m "auto: DMK Upd ${{ steps.diff.outputs.latest }}"
             git push
+            echo "✅ 已提交 Upd ${{ steps.diff.outputs.latest }}"
           fi
