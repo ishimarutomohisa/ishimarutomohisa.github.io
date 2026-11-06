@@ -120,6 +120,10 @@
 
 	// ================= 配置区 =================
 	const BASE_URL = 'https://www.disney-magic-kingdoms.com/news';
+	
+	// 日期切点（小时）：随所在时区变化，东八区恒为 23（与原逻辑完全一致）
+    // 东八区 23:00 ｜ UTC 15:00 ｜ 纽约 10:00 ｜ 印度 20:30
+    const DAY_CUT_H = 15 - new Date().getTimezoneOffset() / 60;
 
 	// ① 你自己的 PHP 代理（最稳，优先）
 	//    同源部署写相对路径；本地 file:// 打开则写绝对地址
@@ -236,7 +240,7 @@
         let max = 0;
         schedules.forEach(g => g.tasks.forEach(t => {
             const parts = t.end.split('-').map(Number);
-            const endMs = Date.UTC(parts[0], parts[1]-1, parts[2], 23);
+            const endMs = Date.UTC(parts[0], parts[1]-1, parts[2]) + DAY_CUT_H * 3600000;
             if (endMs > max) max = endMs;
         }));
         return max;
@@ -495,11 +499,11 @@
         });
 
         const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#3F51B5', '#00BCD4'];
-        const nowMs = Date.now(); 
+        const nowMs = Date.now() - new Date().getTimezoneOffset() * 60000;
 
         function toUtcMs(ymd) {
             const parts = ymd.split('-').map(Number);
-            return Date.UTC(parts[0], parts[1]-1, parts[2], 23); 
+            return Date.UTC(parts[0], parts[1]-1, parts[2]) + DAY_CUT_H * 3600000;
         }
 
         // --- 核心修改：排序算法（绝对时间优先，同天开始则大活动优先） ---
